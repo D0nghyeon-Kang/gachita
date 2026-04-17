@@ -108,7 +108,7 @@ gachita/
 
 ### 1. 레포지토리 클론
 ```bash
-git clone https://github.com/YOUR_USERNAME/gachita.git
+git clone https://github.com/D0nghyeon-Kang/gachita.git
 cd gachita
 ```
 
