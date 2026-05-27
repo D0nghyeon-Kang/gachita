@@ -9,6 +9,7 @@ const MOCK_RIDES = [
     seatsLeft: 2,
     estimatedCost: 4500,
     rating: 4.8,
+    driver: { name: '이준호', rating: 4.8, trips: 34, carModel: '현대 아반떼' },
   },
   {
     id: 2,
@@ -18,6 +19,7 @@ const MOCK_RIDES = [
     seatsLeft: 1,
     estimatedCost: 7200,
     rating: 4.5,
+    driver: { name: '박서연', rating: 4.5, trips: 21, carModel: '기아 K3' },
   },
   {
     id: 3,
@@ -27,6 +29,7 @@ const MOCK_RIDES = [
     seatsLeft: 0,
     estimatedCost: 3800,
     rating: 4.2,
+    driver: { name: '최민준', rating: 4.2, trips: 12, carModel: '쉐보레 스파크' },
   },
 ]
 

@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+
 function StarRating({ rating }) {
   return (
     <span className="ride-card__stars" aria-label={`별점 ${rating}점`}>
@@ -21,6 +23,7 @@ function StarRating({ rating }) {
 
 function RideCard({ ride }) {
   const { from, to, departureTime, seatsLeft, estimatedCost, rating } = ride
+  const navigate = useNavigate()
 
   const seatsColor =
     seatsLeft === 0
@@ -30,7 +33,15 @@ function RideCard({ ride }) {
         : 'text-success'
 
   return (
-    <div className="card ride-card h-100 shadow-sm border-0">
+    <div
+      className="card ride-card h-100 shadow-sm border-0"
+      style={{ cursor: 'pointer' }}
+      onClick={() => navigate(`/rides/${ride.id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(`/rides/${ride.id}`)}
+      aria-label={`${from}에서 ${to} 동승 상세 보기`}
+    >
       <div className="card-body d-flex flex-column gap-2 p-3">
 
         {/* 출발지 → 목적지 */}
@@ -72,6 +83,7 @@ function RideCard({ ride }) {
           <button
             className="btn btn-primary btn-sm px-3"
             disabled={seatsLeft === 0}
+            onClick={(e) => e.stopPropagation()}
           >
             {seatsLeft === 0 ? '마감' : '신청하기'}
           </button>
