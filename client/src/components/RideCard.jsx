@@ -22,9 +22,10 @@ function StarRating({ rating }) {
 }
 
 function RideCard({ ride }) {
-  const { from, to, departureTime, seatsLeft, estimatedCost, rating } = ride
+  const { origin, destination, depart_at, total_seats, filled_seats, cost_total, rating } = ride
   const navigate = useNavigate()
 
+  const seatsLeft = total_seats - filled_seats
   const seatsColor =
     seatsLeft === 0
       ? 'text-danger'
@@ -40,20 +41,20 @@ function RideCard({ ride }) {
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && navigate(`/rides/${ride.id}`)}
-      aria-label={`${from}에서 ${to} 동승 상세 보기`}
+      aria-label={`${origin}에서 ${destination} 동승 상세 보기`}
     >
       <div className="card-body d-flex flex-column gap-2 p-3">
 
         {/* 출발지 → 목적지 */}
         <div className="d-flex align-items-center gap-2 fw-semibold fs-6">
           <span className="badge bg-primary-subtle text-primary rounded-pill px-2 py-1">
-            {from}
+            {origin}
           </span>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="text-secondary flex-shrink-0" viewBox="0 0 16 16" aria-hidden="true">
             <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z" />
           </svg>
           <span className="badge bg-success-subtle text-success rounded-pill px-2 py-1">
-            {to}
+            {destination}
           </span>
         </div>
 
@@ -63,7 +64,7 @@ function RideCard({ ride }) {
         <ul className="list-unstyled mb-0 d-flex flex-column gap-1 small">
           <li className="d-flex justify-content-between">
             <span className="text-secondary">출발 시간</span>
-            <span className="fw-medium">{departureTime}</span>
+            <span className="fw-medium">{depart_at}</span>
           </li>
           <li className="d-flex justify-content-between">
             <span className="text-secondary">잔여 좌석</span>
@@ -73,7 +74,7 @@ function RideCard({ ride }) {
           </li>
           <li className="d-flex justify-content-between">
             <span className="text-secondary">예상 비용</span>
-            <span className="fw-medium">{estimatedCost.toLocaleString()}원</span>
+            <span className="fw-medium">{cost_total.toLocaleString()}원</span>
           </li>
         </ul>
 
