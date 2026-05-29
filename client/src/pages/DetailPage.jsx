@@ -239,6 +239,14 @@ function DetailPage() {
         </button>
       )}
 
+      {/* 후기 작성 버튼 */}
+      <button
+        className="btn btn-outline-secondary w-100 py-2 mt-2 fw-semibold"
+        onClick={() => navigate(`/rides/${id}/review`)}
+      >
+        후기 작성
+      </button>
+
     </div>
   )
 }
