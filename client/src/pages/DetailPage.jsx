@@ -4,11 +4,12 @@ import { useState } from 'react'
 const MOCK_RIDES = [
   {
     id: 1,
-    from: '기숙사',
-    to: '서울역',
-    departureTime: '2026-05-26 08:30',
-    seatsLeft: 2,
-    estimatedCost: 4500,
+    origin: '기숙사',
+    destination: '서울역',
+    depart_at: '2026-05-26 08:30',
+    total_seats: 4,
+    filled_seats: 2,
+    cost_total: 4500,
     rating: 4.8,
     driver: {
       name: '이준호',
@@ -19,11 +20,12 @@ const MOCK_RIDES = [
   },
   {
     id: 2,
-    from: '정문',
-    to: '강남역',
-    departureTime: '2026-05-26 09:00',
-    seatsLeft: 1,
-    estimatedCost: 7200,
+    origin: '정문',
+    destination: '강남역',
+    depart_at: '2026-05-26 09:00',
+    total_seats: 4,
+    filled_seats: 3,
+    cost_total: 7200,
     rating: 4.5,
     driver: {
       name: '박서연',
@@ -34,11 +36,12 @@ const MOCK_RIDES = [
   },
   {
     id: 3,
-    from: '후문',
-    to: '수원역',
-    departureTime: '2026-05-26 10:15',
-    seatsLeft: 0,
-    estimatedCost: 3800,
+    origin: '후문',
+    destination: '수원역',
+    depart_at: '2026-05-26 10:15',
+    total_seats: 4,
+    filled_seats: 4,
+    cost_total: 3800,
     rating: 4.2,
     driver: {
       name: '최민준',
@@ -88,8 +91,9 @@ function DetailPage() {
     )
   }
 
-  const { from, to, departureTime, seatsLeft, estimatedCost, rating, driver } = ride
+  const { origin, destination, depart_at, total_seats, filled_seats, cost_total, rating, driver } = ride
 
+  const seatsLeft = total_seats - filled_seats
   const seatsColor =
     seatsLeft === 0 ? 'text-danger' : seatsLeft <= 1 ? 'text-warning' : 'text-success'
   const seatsBadge =
@@ -120,7 +124,7 @@ function DetailPage() {
           <div className="d-flex align-items-center justify-content-center gap-3 mb-3">
             <div className="text-center">
               <div className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
-                {from}
+                {origin}
               </div>
               <div className="small text-secondary mt-1">출발지</div>
             </div>
@@ -129,7 +133,7 @@ function DetailPage() {
             </svg>
             <div className="text-center">
               <div className="badge bg-success-subtle text-success fs-6 px-3 py-2 rounded-pill">
-                {to}
+                {destination}
               </div>
               <div className="small text-secondary mt-1">목적지</div>
             </div>
@@ -157,7 +161,7 @@ function DetailPage() {
                 </svg>
                 출발 시간
               </span>
-              <span className="fw-semibold">{departureTime}</span>
+              <span className="fw-semibold">{depart_at}</span>
             </li>
             <li className="d-flex justify-content-between align-items-center">
               <span className="text-secondary d-flex align-items-center gap-2">
@@ -177,7 +181,7 @@ function DetailPage() {
                 </svg>
                 예상 비용
               </span>
-              <span className="fw-bold text-primary">{estimatedCost.toLocaleString()}원</span>
+              <span className="fw-bold text-primary">{cost_total.toLocaleString()}원</span>
             </li>
             <li className="d-flex justify-content-between align-items-center">
               <span className="text-secondary d-flex align-items-center gap-2">
@@ -234,6 +238,14 @@ function DetailPage() {
           {seatsLeft === 0 ? '모집이 마감됐어요' : '참여 신청하기'}
         </button>
       )}
+
+      {/* 후기 작성 버튼 */}
+      <button
+        className="btn btn-outline-secondary w-100 py-2 mt-2 fw-semibold"
+        onClick={() => navigate(`/rides/${id}/review`)}
+      >
+        후기 작성
+      </button>
 
     </div>
   )
