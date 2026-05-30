@@ -3,6 +3,7 @@ import MainPage from './pages/MainPage'
 import DetailPage from './pages/DetailPage'
 import WritePage from './pages/WritePage'
 import ReviewPage from './pages/ReviewPage'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/rides/:id" element={<DetailPage />} />
         <Route path="/rides/:id/review" element={<ReviewPage />} />
         <Route path="/write" element={<WritePage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
   )

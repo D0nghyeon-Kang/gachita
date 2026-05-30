@@ -1,0 +1,190 @@
+import { useNavigate } from 'react-router-dom'
+
+const MOCK_USER = {
+  nickname: '김민석',
+  student_id: '20210001',
+  manner_score: 36.5,
+  ride_count: 12,
+}
+
+const STATUS_MAP = {
+  open:      { label: '모집중', color: 'success' },
+  closed:    { label: '마감',   color: 'warning' },
+  completed: { label: '완료',   color: 'secondary' },
+  cancelled: { label: '취소',   color: 'danger' },
+}
+
+const MOCK_MY_RIDES = [
+  {
+    id: 1,
+    origin: '기숙사',
+    destination: '서울역',
+    depart_at: '2026-06-01 08:30',
+    status: 'open',
+  },
+  {
+    id: 2,
+    origin: '정문',
+    destination: '강남역',
+    depart_at: '2026-05-28 09:00',
+    status: 'completed',
+  },
+]
+
+const MOCK_APPLIED_RIDES = [
+  {
+    id: 3,
+    origin: '후문',
+    destination: '수원역',
+    depart_at: '2026-06-02 10:15',
+    status: 'open',
+  },
+  {
+    id: 4,
+    origin: '기숙사',
+    destination: '잠실역',
+    depart_at: '2026-05-30 18:00',
+    status: 'completed',
+  },
+]
+
+function StatusBadge({ status }) {
+  const { label, color } = STATUS_MAP[status] ?? { label: status, color: 'secondary' }
+  return (
+    <span className={`badge bg-${color}-subtle text-${color} rounded-pill px-2 py-1`}>
+      {label}
+    </span>
+  )
+}
+
+function RideRowCard({ ride }) {
+  const navigate = useNavigate()
+  const { id, origin, destination, depart_at, status } = ride
+
+  return (
+    <div
+      className="card border-0 bg-light mb-2"
+      style={{ cursor: 'pointer' }}
+      role="button"
+      tabIndex={0}
+      onClick={() => navigate(`/rides/${id}`)}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(`/rides/${id}`)}
+      aria-label={`${origin}에서 ${destination} 동승 상세 보기`}
+    >
+      <div className="card-body py-2 px-3 d-flex align-items-center justify-content-between gap-2">
+        <div className="d-flex align-items-center gap-2 fw-semibold small flex-grow-1 min-w-0">
+          <span className="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 text-truncate">
+            {origin}
+          </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            fill="currentColor"
+            className="text-secondary flex-shrink-0"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+          >
+            <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z" />
+          </svg>
+          <span className="badge bg-success-subtle text-success rounded-pill px-2 py-1 text-truncate">
+            {destination}
+          </span>
+        </div>
+        <div className="d-flex flex-column align-items-end gap-1 flex-shrink-0">
+          <StatusBadge status={status} />
+          <span className="text-secondary" style={{ fontSize: '0.72rem' }}>{depart_at}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProfilePage() {
+  const navigate = useNavigate()
+  const { nickname, student_id, manner_score, ride_count } = MOCK_USER
+
+  return (
+    <div className="container py-4 px-3" style={{ maxWidth: 600 }}>
+
+      {/* 뒤로가기 */}
+      <button
+        className="btn btn-link ps-0 mb-3 text-secondary text-decoration-none d-flex align-items-center gap-1"
+        onClick={() => navigate(-1)}
+        aria-label="뒤로가기"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+          <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+        </svg>
+        뒤로가기
+      </button>
+
+      <h2 className="fs-5 fw-bold mb-4">내 프로필</h2>
+
+      {/* 내 정보 카드 */}
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-4">
+          <div className="d-flex align-items-center gap-3 mb-3">
+            <div
+              className="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+              style={{ width: 56, height: 56, fontSize: '1.4rem' }}
+              aria-hidden="true"
+            >
+              {nickname.charAt(0)}
+            </div>
+            <div>
+              <p className="fw-bold fs-5 mb-0">{nickname}</p>
+              <p className="text-secondary small mb-0">학번 {student_id}</p>
+            </div>
+          </div>
+
+          <hr className="my-3" />
+
+          <div className="row g-3 text-center">
+            <div className="col-6">
+              <p className="text-secondary small mb-1">매너 온도</p>
+              <p className="fw-bold fs-5 mb-0" style={{ color: '#f97316' }}>
+                {manner_score.toFixed(1)}°
+              </p>
+            </div>
+            <div className="col-6">
+              <p className="text-secondary small mb-1">탑승 횟수</p>
+              <p className="fw-bold fs-5 mb-0">{ride_count}회</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 내가 등록한 동승 목록 */}
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-4">
+          <h3 className="fs-6 fw-bold mb-3">내가 등록한 동승</h3>
+          {MOCK_MY_RIDES.length === 0 ? (
+            <p className="text-secondary small mb-0 text-center py-2">등록한 동승이 없습니다.</p>
+          ) : (
+            MOCK_MY_RIDES.map((ride) => (
+              <RideRowCard key={ride.id} ride={ride} />
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* 내가 신청한 동승 목록 */}
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-4">
+          <h3 className="fs-6 fw-bold mb-3">내가 신청한 동승</h3>
+          {MOCK_APPLIED_RIDES.length === 0 ? (
+            <p className="text-secondary small mb-0 text-center py-2">신청한 동승이 없습니다.</p>
+          ) : (
+            MOCK_APPLIED_RIDES.map((ride) => (
+              <RideRowCard key={ride.id} ride={ride} />
+            ))
+          )}
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
+export default ProfilePage
