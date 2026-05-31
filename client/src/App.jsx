@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Navbar from './components/Navbar'
 import MainPage from './pages/MainPage'
 import DetailPage from './pages/DetailPage'
 import WritePage from './pages/WritePage'
@@ -8,6 +9,7 @@ import ProfilePage from './pages/ProfilePage'
 function App() {
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/rides/:id" element={<DetailPage />} />

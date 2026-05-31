@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import RideCard from '../components/RideCard'
 
 const MOCK_RIDES = [
@@ -38,28 +37,12 @@ const MOCK_RIDES = [
 ]
 
 function MainPage() {
-  const navigate = useNavigate()
-
   return (
     <div className="container py-4 px-3">
 
-      {/* 헤더 */}
-      <header className="d-flex align-items-center justify-content-between mb-4">
-        <div>
-          <h1 className="fs-4 fw-bold mb-1">같이타</h1>
-          <p className="text-secondary small mb-0">지금 모집 중인 동승 목록이에요.</p>
-        </div>
-        <button
-          type="button"
-          className="btn btn-primary d-flex align-items-center gap-1 flex-shrink-0"
-          onClick={() => navigate('/write')}
-          aria-label="게시글 작성"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2z"/>
-          </svg>
-          <span className="d-none d-sm-inline">글쓰기</span>
-        </button>
+      {/* 페이지 타이틀 */}
+      <header className="mb-4">
+        <p className="text-secondary small mb-0">지금 모집 중인 동승 목록이에요.</p>
       </header>
 
       {/* 검색/필터 바 */}
