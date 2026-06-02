@@ -84,7 +84,20 @@ function DetailPage() {
     return (
       <div className="container py-5 text-center">
         <p className="text-secondary">동승 정보를 찾을 수 없어요.</p>
-        <button className="btn btn-outline-primary mt-2" onClick={() => navigate('/')}>
+        <button
+          style={{
+            marginTop: '8px',
+            padding: '8px 20px',
+            border: '1.5px solid var(--color-primary)',
+            borderRadius: 'var(--radius-pill)',
+            background: 'transparent',
+            color: 'var(--color-primary-dark)',
+            fontFamily: 'var(--font-sans)',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+          onClick={() => navigate('/')}
+        >
           목록으로 돌아가기
         </button>
       </div>
@@ -123,7 +136,14 @@ function DetailPage() {
         <div className="card-body p-4">
           <div className="d-flex align-items-center justify-content-center gap-3 mb-3">
             <div className="text-center">
-              <div className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
+              <div style={{
+                fontSize: '1rem',
+                fontWeight: 600,
+                padding: '8px 16px',
+                borderRadius: '9999px',
+                background: 'var(--color-primary-bg)',
+                color: 'var(--color-primary-dark)',
+              }}>
                 {origin}
               </div>
               <div className="small text-secondary mt-1">출발지</div>
@@ -132,7 +152,14 @@ function DetailPage() {
               <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z" />
             </svg>
             <div className="text-center">
-              <div className="badge bg-success-subtle text-success fs-6 px-3 py-2 rounded-pill">
+              <div style={{
+                fontSize: '1rem',
+                fontWeight: 600,
+                padding: '8px 16px',
+                borderRadius: '9999px',
+                background: 'var(--color-primary-bg)',
+                color: 'var(--color-primary-dark)',
+              }}>
                 {destination}
               </div>
               <div className="small text-secondary mt-1">목적지</div>
@@ -181,7 +208,7 @@ function DetailPage() {
                 </svg>
                 예상 비용
               </span>
-              <span className="fw-bold text-primary">{cost_total.toLocaleString()}원</span>
+              <span className="fw-bold" style={{ color: 'var(--color-primary)' }}>{cost_total.toLocaleString()}원</span>
             </li>
             <li className="d-flex justify-content-between align-items-center">
               <span className="text-secondary d-flex align-items-center gap-2">
@@ -202,11 +229,11 @@ function DetailPage() {
           <h6 className="fw-bold mb-3 text-secondary small text-uppercase">운전자 정보</h6>
           <div className="d-flex align-items-center gap-3">
             <div
-              className="rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center flex-shrink-0"
-              style={{ width: 52, height: 52 }}
+              className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              style={{ width: 52, height: 52, background: 'var(--color-primary-bg)' }}
               aria-hidden="true"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="text-primary" viewBox="0 0 16 16">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="var(--color-primary)" viewBox="0 0 16 16">
                 <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.029 10 8 10c-2.029 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
               </svg>
             </div>
@@ -231,7 +258,21 @@ function DetailPage() {
         </div>
       ) : (
         <button
-          className="btn btn-primary w-100 py-3 fw-semibold fs-6"
+          style={{
+            width: '100%',
+            padding: '14px',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            fontFamily: 'var(--font-sans)',
+            fontWeight: 700,
+            fontSize: '1rem',
+            cursor: seatsLeft === 0 ? 'not-allowed' : 'pointer',
+            background: seatsLeft === 0
+              ? 'rgba(100,116,139,0.1)'
+              : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+            color: seatsLeft === 0 ? 'var(--color-text-muted)' : '#FFFFFF',
+            boxShadow: seatsLeft === 0 ? 'none' : '0 2px 8px rgba(16,185,129,0.3)',
+          }}
           disabled={seatsLeft === 0}
           onClick={handleApply}
         >

@@ -108,7 +108,21 @@ function ReviewPage() {
           </button>
           <button
             type="submit"
-            className="btn btn-primary flex-fill py-3 fw-semibold"
+            style={{
+              flex: 1,
+              padding: '14px',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              background: rating === 0
+                ? 'rgba(100,116,139,0.1)'
+                : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+              color: rating === 0 ? 'var(--color-text-muted)' : '#FFFFFF',
+              fontFamily: 'var(--font-sans)',
+              fontWeight: 700,
+              fontSize: '1rem',
+              cursor: rating === 0 ? 'not-allowed' : 'pointer',
+              boxShadow: rating === 0 ? 'none' : '0 2px 8px rgba(16,185,129,0.3)',
+            }}
             disabled={rating === 0}
           >
             제출하기

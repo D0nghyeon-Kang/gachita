@@ -73,7 +73,14 @@ function RideRowCard({ ride }) {
     >
       <div className="card-body py-2 px-3 d-flex align-items-center justify-content-between gap-2">
         <div className="d-flex align-items-center gap-2 fw-semibold small flex-grow-1 min-w-0">
-          <span className="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 text-truncate">
+          <span style={{
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            padding: '3px 10px',
+            borderRadius: '9999px',
+            background: 'var(--color-primary-bg)',
+            color: 'var(--color-primary-dark)',
+          }}>
             {origin}
           </span>
           <svg
@@ -87,7 +94,14 @@ function RideRowCard({ ride }) {
           >
             <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z" />
           </svg>
-          <span className="badge bg-success-subtle text-success rounded-pill px-2 py-1 text-truncate">
+          <span style={{
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            padding: '3px 10px',
+            borderRadius: '9999px',
+            background: 'var(--color-primary-bg)',
+            color: 'var(--color-primary-dark)',
+          }}>
             {destination}
           </span>
         </div>
@@ -126,8 +140,8 @@ function ProfilePage() {
         <div className="card-body p-4">
           <div className="d-flex align-items-center gap-3 mb-3">
             <div
-              className="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-              style={{ width: 56, height: 56, fontSize: '1.4rem' }}
+              className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+              style={{ width: 56, height: 56, fontSize: '1.4rem', background: 'var(--color-primary)' }}
               aria-hidden="true"
             >
               {nickname.charAt(0)}
