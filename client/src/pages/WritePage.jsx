@@ -167,7 +167,19 @@ function WritePage() {
             <div className="d-flex flex-column flex-sm-row gap-2">
               <button
                 type="submit"
-                className="btn btn-primary flex-grow-1 py-2 fw-semibold"
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  border: 'none',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+                  color: '#FFFFFF',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+                }}
               >
                 등록하기
               </button>
