@@ -126,10 +126,22 @@ const STEPS = [
 function MainPage() {
   const [activeFilter, setActiveFilter] = useState('전체')
   const [sort, setSort] = useState('최신순')
+  const [searchOrigin, setSearchOrigin] = useState('')
+  const [searchDest, setSearchDest] = useState('')
+  const [appliedOrigin, setAppliedOrigin] = useState('')
+  const [appliedDest, setAppliedDest] = useState('')
 
-  const filtered = MOCK_RIDES.filter(
-    (r) => activeFilter === '전체' || r.type === activeFilter,
-  )
+  function handleSearch() {
+    setAppliedOrigin(searchOrigin.trim())
+    setAppliedDest(searchDest.trim())
+  }
+
+  const filtered = MOCK_RIDES.filter((r) => {
+    if (activeFilter !== '전체' && r.type !== activeFilter) return false
+    if (appliedOrigin && !r.origin.includes(appliedOrigin)) return false
+    if (appliedDest && !r.destination.includes(appliedDest)) return false
+    return true
+  })
 
   return (
     <main style={{ background: 'var(--color-bg)' }}>
@@ -200,6 +212,9 @@ function MainPage() {
                 <input
                   type="text"
                   placeholder="출발지 (예: 기숙사, 정문)"
+                  value={searchOrigin}
+                  onChange={(e) => setSearchOrigin(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{
                     border: 'none',
                     outline: 'none',
@@ -223,6 +238,9 @@ function MainPage() {
                 <input
                   type="text"
                   placeholder="목적지 (예: 강남역, 수원역)"
+                  value={searchDest}
+                  onChange={(e) => setSearchDest(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   style={{
                     border: 'none',
                     outline: 'none',
@@ -234,20 +252,23 @@ function MainPage() {
                   }}
                 />
               </div>
-              <button style={{
-                padding: '10px 20px',
-                borderRadius: 'var(--radius-md)',
-                border: 'none',
-                background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-                color: '#FFFFFF',
-                fontFamily: 'var(--font-sans)',
-                fontWeight: 700,
-                fontSize: '0.9rem',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
-                transition: 'opacity 0.15s ease',
-              }}>
+              <button
+                onClick={handleSearch}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 'var(--radius-md)',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+                  color: '#FFFFFF',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                  transition: 'opacity 0.15s ease',
+                }}
+              >
                 검색
               </button>
             </div>
@@ -327,11 +348,19 @@ function MainPage() {
             </h2>
           </div>
           <div className="row g-3">
-            {filtered.map((ride) => (
-              <div key={ride.id} className="col-12 col-sm-6 col-lg-4">
-                <RideCard ride={ride} />
+            {filtered.length === 0 ? (
+              <div className="col-12 text-center py-5" style={{ color: 'var(--color-text-sub)' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🔍</div>
+                <p style={{ fontWeight: 600 }}>검색 결과가 없어요.</p>
+                <p style={{ fontSize: '0.875rem' }}>출발지·목적지를 다시 확인해보세요.</p>
               </div>
-            ))}
+            ) : (
+              filtered.map((ride) => (
+                <div key={ride.id} className="col-12 col-sm-6 col-lg-4">
+                  <RideCard ride={ride} />
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
