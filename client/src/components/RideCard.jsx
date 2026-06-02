@@ -134,7 +134,10 @@ function RideCard({ ride }) {
               boxShadow: seatsLeft === 0 ? 'none' : '0 2px 8px rgba(16,185,129,0.3)',
             }}
             disabled={seatsLeft === 0}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              navigate(`/rides/${ride.id}`)
+            }}
           >
             {seatsLeft === 0 ? '마감' : '신청하기'}
           </button>
