@@ -23,7 +23,7 @@ function Navbar() {
         <Link
           to="/"
           className="d-flex align-items-center gap-2 text-decoration-none"
-          style={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.03em' }}
+          style={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.03em', whiteSpace: 'nowrap' }}
         >
           <span
             style={{
@@ -42,9 +42,7 @@ function Navbar() {
               <path d="M2.5 10a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm11 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
             </svg>
           </span>
-          <span style={{ color: 'var(--color-text)' }}>
-            같이<span style={{ color: 'var(--color-primary)' }}>타</span>
-          </span>
+          <span style={{ color: 'var(--color-text)' }}>같이<span style={{ color: 'var(--color-primary)' }}>타</span></span>
         </Link>
 
         {/* 햄버거 (모바일) */}
