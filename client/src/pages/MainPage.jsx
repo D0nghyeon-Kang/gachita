@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import RideCard from '../components/RideCard'
 
 const MOCK_RIDES = [
@@ -127,6 +127,10 @@ function MainPage() {
   const [activeFilter, setActiveFilter] = useState('전체')
   const [sort, setSort] = useState('최신순')
   const [searchOrigin, setSearchOrigin] = useState('')
+
+  useEffect(() => {
+    document.title = '같이타 - 메인'
+  }, [])
   const [searchDest, setSearchDest] = useState('')
   const [appliedOrigin, setAppliedOrigin] = useState('')
   const [appliedDest, setAppliedDest] = useState('')

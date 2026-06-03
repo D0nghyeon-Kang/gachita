@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
 function StarPicker({ rating, onRate }) {
@@ -42,6 +42,10 @@ function ReviewPage() {
   const navigate = useNavigate()
   const [rating, setRating] = useState(0)
   const [text, setText] = useState('')
+
+  useEffect(() => {
+    document.title = '같이타 - 후기 작성'
+  }, [])
 
   function handleSubmit(e) {
     e.preventDefault()
