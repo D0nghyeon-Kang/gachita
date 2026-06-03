@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const MOCK_USER = {
@@ -47,6 +48,50 @@ const MOCK_APPLIED_RIDES = [
     status: 'completed',
   },
 ]
+
+const MOCK_REVIEWS = [
+  {
+    id: 1,
+    author: '이준호',
+    rating: 5,
+    content: '시간도 딱 맞추고, 매너도 너무 좋으셨어요. 다음에 또 같이 타고 싶어요!',
+    date: '2026-05-28',
+  },
+  {
+    id: 2,
+    author: '박서연',
+    rating: 4,
+    content: '조용하고 편안한 동승이었습니다. 정류장도 잘 알고 계셨어요.',
+    date: '2026-05-30',
+  },
+]
+
+function mannerBarColor(score) {
+  if (score < 34) return '#3b82f6'
+  if (score < 38) return 'var(--color-primary)'
+  if (score < 42) return '#f97316'
+  return '#ef4444'
+}
+
+function StarMini({ rating }) {
+  return (
+    <span aria-label={`별점 ${rating}점`}>
+      {[1, 2, 3, 4, 5].map((s) => (
+        <svg
+          key={s}
+          xmlns="http://www.w3.org/2000/svg"
+          width="13"
+          height="13"
+          fill={s <= rating ? '#ffc107' : '#dee2e6'}
+          viewBox="0 0 16 16"
+          aria-hidden="true"
+        >
+          <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+        </svg>
+      ))}
+    </span>
+  )
+}
 
 function StatusBadge({ status }) {
   const { label, color } = STATUS_MAP[status] ?? { label: status, color: 'secondary' }
@@ -118,6 +163,13 @@ function ProfilePage() {
   const navigate = useNavigate()
   const { nickname, student_id, manner_score, ride_count } = MOCK_USER
 
+  useEffect(() => {
+    document.title = '같이타 - 프로필'
+  }, [])
+
+  const barPercent = Math.min(100, (manner_score / 50) * 100)
+  const barColor = mannerBarColor(manner_score)
+
   return (
     <div className="container py-4 px-3" style={{ maxWidth: 600 }}>
 
@@ -138,32 +190,65 @@ function ProfilePage() {
       {/* 내 정보 카드 */}
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
-          <div className="d-flex align-items-center gap-3 mb-3">
-            <div
-              className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-              style={{ width: 56, height: 56, fontSize: '1.4rem', background: 'var(--color-primary)' }}
-              aria-hidden="true"
+          <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
+            <div className="d-flex align-items-center gap-3">
+              <div
+                className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                style={{ width: 56, height: 56, fontSize: '1.4rem', background: 'var(--color-primary)' }}
+                aria-hidden="true"
+              >
+                {nickname.charAt(0)}
+              </div>
+              <div>
+                <p className="fw-bold fs-5 mb-0">{nickname}</p>
+                <p className="text-secondary small mb-0">학번 {student_id}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm fw-semibold flex-shrink-0"
+              onClick={() => console.log('프로필 수정 클릭')}
             >
-              {nickname.charAt(0)}
-            </div>
-            <div>
-              <p className="fw-bold fs-5 mb-0">{nickname}</p>
-              <p className="text-secondary small mb-0">학번 {student_id}</p>
-            </div>
+              프로필 수정
+            </button>
           </div>
 
           <hr className="my-3" />
 
-          <div className="row g-3 text-center">
-            <div className="col-6">
-              <p className="text-secondary small mb-1">매너 온도</p>
-              <p className="fw-bold fs-5 mb-0" style={{ color: '#f97316' }}>
-                {manner_score.toFixed(1)}°
-              </p>
-            </div>
-            <div className="col-6">
+          <div className="row g-3">
+            <div className="col-6 text-center">
               <p className="text-secondary small mb-1">탑승 횟수</p>
               <p className="fw-bold fs-5 mb-0">{ride_count}회</p>
+            </div>
+            <div className="col-6">
+              <p className="text-secondary small mb-1 text-center">
+                매너 온도
+                <span className="ms-1 fw-bold" style={{ color: barColor }}>
+                  {manner_score.toFixed(1)}°
+                </span>
+              </p>
+              <div
+                className="rounded-pill overflow-hidden"
+                style={{ height: 10, background: '#e9ecef' }}
+                role="progressbar"
+                aria-valuenow={manner_score}
+                aria-valuemin={0}
+                aria-valuemax={50}
+              >
+                <div
+                  className="h-100 rounded-pill"
+                  style={{
+                    width: `${barPercent}%`,
+                    background: barColor,
+                    transition: 'width 0.4s ease',
+                  }}
+                />
+              </div>
+              <div className="d-flex justify-content-between mt-1" style={{ fontSize: '0.65rem', color: '#adb5bd' }}>
+                <span>0°</span>
+                <span>36.5°</span>
+                <span>50°</span>
+              </div>
             </div>
           </div>
         </div>
@@ -194,6 +279,27 @@ function ProfilePage() {
               <RideRowCard key={ride.id} ride={ride} />
             ))
           )}
+        </div>
+      </div>
+
+      {/* 받은 후기 */}
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-4">
+          <h3 className="fs-6 fw-bold mb-3">받은 후기</h3>
+          <div className="d-flex flex-column gap-3">
+            {MOCK_REVIEWS.map((review) => (
+              <div key={review.id} className="p-3 rounded-3" style={{ background: 'var(--color-primary-bg)' }}>
+                <div className="d-flex align-items-center justify-content-between mb-1">
+                  <span className="fw-semibold small">{review.author}</span>
+                  <div className="d-flex align-items-center gap-2">
+                    <StarMini rating={review.rating} />
+                    <span className="text-secondary" style={{ fontSize: '0.72rem' }}>{review.date}</span>
+                  </div>
+                </div>
+                <p className="small mb-0 text-secondary">{review.content}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
