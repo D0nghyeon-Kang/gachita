@@ -1,7 +1,7 @@
+// server/models/statsModel.js
 const db = require('../db/connection');
 
 const statsModel = {
-  /** 요일별·시간대별 인기 경로 Top 5 */
   popularRoutes() {
     return db.prepare(`
       SELECT origin, destination,
@@ -15,7 +15,6 @@ const statsModel = {
     `).all();
   },
 
-  /** 사용자 절약 금액 계산 */
   userSavings(user_id) {
     return db.prepare(`
       SELECT
@@ -27,7 +26,6 @@ const statsModel = {
     `).get(user_id);
   },
 
-  /** 전체 완료 동승 건수 */
   totalCompleted() {
     return db.prepare(`SELECT COUNT(*) AS count FROM rides WHERE status = 'completed'`).get();
   },

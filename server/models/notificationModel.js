@@ -1,7 +1,8 @@
+// server/models/notificationModel.js
+// 기존 코드와 동일 — schema.sql에 notifications 테이블을 추가했으므로 이제 정상 동작
 const db = require('../db/connection');
 
 const notificationModel = {
-  /** 알림 생성 */
   create({ user_id, ride_id, type, message }) {
     const info = db.prepare(`
       INSERT INTO notifications (user_id, ride_id, type, message)
@@ -10,7 +11,6 @@ const notificationModel = {
     return db.prepare(`SELECT * FROM notifications WHERE id = ?`).get(info.lastInsertRowid);
   },
 
-  /** 사용자 알림 목록 (미읽음 우선) */
   findByUser(user_id) {
     return db.prepare(`
       SELECT * FROM notifications
@@ -19,12 +19,10 @@ const notificationModel = {
     `).all(user_id);
   },
 
-  /** 알림 읽음 처리 */
   markRead(id, user_id) {
     db.prepare(`UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?`).run(id, user_id);
   },
 
-  /** 전체 읽음 처리 */
   markAllRead(user_id) {
     db.prepare(`UPDATE notifications SET is_read = 1 WHERE user_id = ?`).run(user_id);
   },

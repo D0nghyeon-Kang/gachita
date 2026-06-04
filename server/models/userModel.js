@@ -1,3 +1,4 @@
+// server/models/userModel.js
 const db = require('../db/connection');
 
 const userModel = {
@@ -17,6 +18,16 @@ const userModel = {
       VALUES (@student_id, @nickname, @password_hash, @gender)
     `).run({ student_id, nickname, password_hash, gender });
     return this.findById(info.lastInsertRowid);
+  },
+
+  updateNickname(id, nickname) {
+    db.prepare('UPDATE users SET nickname = ? WHERE id = ?').run(nickname, id);
+    return this.findById(id);
+  },
+
+  updateGender(id, gender) {
+    db.prepare('UPDATE users SET gender = ? WHERE id = ?').run(gender, id);
+    return this.findById(id);
   },
 };
 

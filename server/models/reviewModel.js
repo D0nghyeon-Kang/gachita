@@ -1,7 +1,11 @@
+// server/models/reviewModel.js
+// 컬럼명을 schema.sql 기준으로 통일:
+//   rating (기존 코드: score → rating으로 스키마 변경)
+//   comment (기존 코드: content → comment로 스키마 변경)
+//   reviewee_id 추가
 const db = require('../db/connection');
 
 const reviewModel = {
-  /** 후기 생성 (트리거가 manner_temp & log 자동 처리) */
   create({ ride_id, reviewer_id, reviewee_id, rating, comment }) {
     const info = db.prepare(`
       INSERT INTO reviews (ride_id, reviewer_id, reviewee_id, rating, comment)
@@ -10,7 +14,6 @@ const reviewModel = {
     return db.prepare(`SELECT * FROM reviews WHERE id = ?`).get(info.lastInsertRowid);
   },
 
-  /** 특정 라이드의 후기 목록 */
   findByRide(ride_id) {
     return db.prepare(`
       SELECT rv.*, u.nickname AS reviewer_nickname
@@ -19,7 +22,6 @@ const reviewModel = {
     `).all(ride_id);
   },
 
-  /** 사용자의 매너 온도 이력 */
   findLogByUser(user_id) {
     return db.prepare(`
       SELECT * FROM manner_score_log WHERE user_id = ? ORDER BY created_at DESC
