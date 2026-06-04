@@ -26,12 +26,13 @@
 
 | 기능 | 설명 |
 |------|------|
-| 🗺️ **동승 모집 목록** | 현재 모집 중인 게시글을 카드 형식으로 확인, 인기 게시글 배지 표시 |
+| 🔐 **회원가입 / 로그인** | 학번 기반 회원가입, JWT 토큰 인증 |
+| 🗺️ **동승 모집 목록** | 현재 모집 중인 게시글을 카드 형식으로 확인, 카풀/택시 필터 |
 | ✍️ **게시글 작성** | 출발지·목적지·시간·인원·비용·성별 조건·수하물 유무 입력 |
 | 🔍 **검색 및 필터** | 키워드 검색(debounce), 시간대·잔여 좌석·비용 정렬 필터 |
-| 📩 **참여 신청** | 신청 → 실시간 알림 → 수락/거절 → 좌석 수 자동 갱신 |
-| ⭐ **후기 별점** | 동승 완료 후 상호 평가, 별점 평균으로 신뢰도 표시 |
-| 📊 **통계 대시보드** | 요일별·시간대별 인기 경로 순위, 동승 완료 이력 |
+| 📩 **참여 신청 / 수락** | 신청(pending) → 모집자 수락 → 잔여 좌석 자동 갱신 |
+| 👤 **프로필 / 신청자 관리** | 내가 올린 게시글의 신청자 목록 확인 및 수락/거절 처리 |
+| ⭐ **후기 별점** | 동승 완료 후 평가, 별점으로 신뢰도 표시 |
 
 ---
 
@@ -39,22 +40,19 @@
 
 ### Frontend
 - **React 18** + **Vite** — 빠른 HMR, 훅 기반 컴포넌트
-- **Context API + useReducer** — 경량 전역 상태 관리
 - **Bootstrap 5** — 반응형 레이아웃 (320px ~ 1440px)
 - **Axios** — REST API 통신
-- **Socket.io-client** — 실시간 알림 수신
+- **React Router v6** — 클라이언트 사이드 라우팅
 
 ### Backend
 - **Node.js 20** + **Express 4** — RESTful API 서버
-- **Socket.io** — 실시간 좌석 갱신·신청 알림 broadcast
 - **better-sqlite3** — SQLite DB (파일 기반, 배포 간편)
-- **bcrypt + JWT** — 인증 및 보안
-- **express-validator** — 입력 검증
+- **bcrypt** — 비밀번호 해시 암호화
+- **jsonwebtoken (JWT)** — 로그인 인증 토큰 발급
 
 ### DevOps
-- **GitHub Actions** — PR 시 Lint·테스트 자동화 (여건에 따라 적용)
 - **ESLint + Prettier** — 코드 스타일 통일
-- **Vercel** (프론트) / **Railway or Render** (백엔드) — 배포
+- **GitHub Flow** — feature → develop → main 브랜치 전략
 
 ---
 
@@ -64,23 +62,30 @@
 gachita/
 ├── client/                # React 프론트엔드 (Vite)
 │   └── src/
-│       ├── pages/         # 라우트 단위 화면
-│       ├── components/    # 재사용 컴포넌트
-│       ├── context/       # Context API (전역 상태)
-│       ├── hooks/         # 커스텀 훅
-│       └── api/           # Axios 인스턴스 및 API 함수
+│       ├── pages/         # 화면 단위 컴포넌트
+│       │   ├── MainPage.jsx
+│       │   ├── DetailPage.jsx
+│       │   ├── WritePage.jsx
+│       │   ├── ReviewPage.jsx
+│       │   ├── ProfilePage.jsx
+│       │   ├── LoginPage.jsx
+│       │   └── SignupPage.jsx
+│       ├── components/    # 재사용 컴포넌트 (Navbar, RideCard)
+│       └── api/           # Axios 인스턴스
 ├── server/                # Node.js + Express 백엔드
-│   ├── routes/            # Express 라우터
-│   ├── controllers/       # 비즈니스 로직
-│   ├── models/            # DB 모델
-│   ├── middleware/        # JWT 인증, 입력 검증
-│   ├── socket/            # Socket.io 이벤트
-│   └── db/
-│       ├── schema.sql     # 테이블 DDL
-│       ├── seed.js        # 더미 데이터
-│       └── db.js          # DB 연결 싱글턴
-├── docs/                  # ERD, API 명세, 와이어프레임
-├── .github/               # PR·Issue 템플릿, Actions
+│   ├── routes/            # API 라우터
+│   │   ├── auth.js        # 로그인 / 회원가입
+│   │   ├── rides.js       # 동승 게시글 CRUD
+│   │   ├── applications.js # 참여 신청 / 수락 / 거절
+│   │   ├── users.js       # 프로필 조회
+│   │   └── reviews.js     # 후기 작성
+│   ├── db/
+│   │   ├── schema.sql     # 테이블 DDL + 트리거
+│   │   ├── seed.js        # 더미 데이터
+│   │   └── db.js          # DB 연결 싱글턴
+│   ├── app.js             # Express 앱 설정
+│   └── server.js          # 서버 진입점
+├── docs/                  # ERD, API 명세
 ├── README.md
 └── CONTRIBUTING.md
 ```
@@ -91,12 +96,10 @@ gachita/
 
 | 테이블 | 설명 |
 |--------|------|
-| `users` | 학번 기반 로그인, 별점 평균, 동승 횟수 |
-| `rides` | 동승 게시글 (status: open → confirmed → completed → cancelled) |
-| `applications` | 참여 신청 내역 (중복 신청 방지 복합 유니크) |
+| `users` | 학번 기반 로그인, bcrypt 비밀번호, 별점 평균, 동승 횟수 |
+| `rides` | 동승 게시글 (status: open → closed → completed → cancelled) |
+| `applications` | 참여 신청 내역 (pending → accepted / rejected) |
 | `reviews` | 동승 완료 후 상호 평가 (1~5점) |
-| `manner_score_log` | 별점 변동 이력 자동 기록 |
-| `notifications` | 신청/수락/거절/확정 알림 영속화 |
 
 ---
 
@@ -106,51 +109,62 @@ gachita/
 - Node.js 20.x 이상
 - npm 10.x 이상
 
-### 1. 레포지토리 클론
+### 1. 레포지토리 클론 및 브랜치 이동
 ```bash
 git clone https://github.com/D0nghyeon-Kang/gachita.git
 cd gachita
+git checkout develop
 ```
 
-### 2. 의존성 설치
+### 2. 백엔드 서버 실행 (터미널 1)
 ```bash
-# 루트에서 client + server 의존성 한 번에 설치 (npm workspaces)
+cd server
+cp .env.example .env
 npm install
+node db/seed.js   # 처음 한 번만 실행
+npm run dev
 ```
+→ `http://localhost:3000` 에서 API 서버 실행
 
-### 3. 환경 변수 설정
+### 3. 프론트엔드 실행 (터미널 2)
 ```bash
-cp server/.env.example server/.env
-# server/.env 파일을 열어 JWT_SECRET 등 값 입력
+cd client
+npm install
+npm run dev
 ```
+→ `http://localhost:5173` 에서 앱 접속
 
-### 4. DB 초기화 및 더미 데이터 삽입
-```bash
-node server/db/seed.js
-```
+### 🧪 테스트 계정
+| 학번 | 비밀번호 |
+|------|----------|
+| 2021001 | password123 |
+| 2021002 | password123 |
 
-### 5. 개발 서버 실행
-```bash
-# 터미널 1 — 백엔드
-npm run dev:server
+---
 
-# 터미널 2 — 프론트엔드
-npm run dev:client
-```
+## 🔗 API 엔드포인트
 
-브라우저에서 `http://localhost:5173` 접속
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/api/auth/register` | 회원가입 |
+| POST | `/api/auth/login` | 로그인 (JWT 발급) |
+| GET | `/api/rides` | 동승 목록 조회 |
+| GET | `/api/rides/:id` | 동승 상세 조회 |
+| POST | `/api/rides` | 동승 게시글 등록 |
+| POST | `/api/applications` | 참여 신청 (pending) |
+| PATCH | `/api/applications/:id` | 신청 수락 / 거절 |
+| GET | `/api/users/me` | 내 프로필 조회 |
+| POST | `/api/reviews` | 후기 작성 |
 
 ---
 
 ## 📅 개발 로드맵
 
-| 단계 | 기간 | 목표 |
+| 단계 | 목표 | 상태 |
 |------|------|------|
-| **v0.1** | 1~2주차 | 게시글 CRUD + 목록 조회 |
-| **v0.2** | 3~4주차 | 참여 신청 + 상태 관리 |
-| **v0.3** | 5~6주차 | 후기(별점) 시스템 |
-| **v0.4** | 7~8주차 | 추천·통계 기능 |
-| **v1.0** | 9~10주차 | 실시간 알림 + 초도 배포 |
+| **v0.1** | 프론트엔드 화면 구성 (메인, 상세, 글쓰기, 후기, 프로필) | ✅ 완료 |
+| **v0.2** | 백엔드 API 구현 + 프론트 연동 + 로그인/회원가입 | ✅ 완료 |
+| **v1.0** | 실시간 알림 + 배포 | 🔜 예정 |
 
 ---
 
@@ -160,22 +174,18 @@ npm run dev:client
 |------|------|------|
 | 최가을 | 백엔드 / PM | Express API 설계, DB 스키마, JWT 인증, 일정 관리 |
 | 김민석 | 프론트엔드 | React 컴포넌트, 메인/상세 화면, Bootstrap 반응형 |
-| 강동현 | 백엔드 / 기능 | 참여 신청 상태 관리 API, 후기 기능, 알림 처리 |
-| 김다인 | 프론트엔드 / 기획 | 통계 대시보드, 문서화(README, CONTRIBUTING), QA |
+| 강동현 | 백엔드 / 기능 | 참여 신청 API, 로그인 API, 프론트 API 연동 |
+| 김다인 | 프론트엔드 / 기획 | 후기/프로필 화면, 문서화(README, CONTRIBUTING), QA |
 
 ---
 
 ## 🤝 기여하기
-
-기여를 환영합니다! 아래 순서로 참여해 주세요.
 
 1. 이 레포지토리를 **Fork** 합니다.
 2. 기능 브랜치를 만듭니다. (`git checkout -b feature/이슈번호-기능명`)
 3. 변경 사항을 커밋합니다. (`git commit -m 'feat: 기능 설명'`)
 4. 브랜치에 Push합니다. (`git push origin feature/이슈번호-기능명`)
 5. **Pull Request**를 보냅니다.
-
-자세한 내용은 [CONTRIBUTING.md](./CONTRIBUTING.md)를 확인해 주세요.
 
 > 브랜치 전략: `main` (배포) / `develop` (통합) / `feature/이슈번호-설명`
 
