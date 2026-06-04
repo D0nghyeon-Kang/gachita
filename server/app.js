@@ -7,6 +7,7 @@ app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
 app.use(express.json())
 
 // 라우터 등록
+app.use('/api/auth',         require('./routes/auth'))
 app.use('/api/rides',        require('./routes/rides'))
 app.use('/api/applications', require('./routes/applications'))
 app.use('/api/users',        require('./routes/users'))
