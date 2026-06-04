@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import api from '../api/axios'
 
 const MOCK_RIDES = [
   {
@@ -11,6 +12,7 @@ const MOCK_RIDES = [
     filled_seats: 2,
     cost_total: 4500,
     rating: 4.8,
+    status: 'open',
     driver: {
       name: '이준호',
       rating: 4.8,
@@ -27,6 +29,7 @@ const MOCK_RIDES = [
     filled_seats: 3,
     cost_total: 7200,
     rating: 4.5,
+    status: 'completed',
     driver: {
       name: '박서연',
       rating: 4.5,
@@ -43,6 +46,7 @@ const MOCK_RIDES = [
     filled_seats: 4,
     cost_total: 3800,
     rating: 4.2,
+    status: 'open',
     driver: {
       name: '최민준',
       rating: 4.2,
@@ -77,8 +81,24 @@ function DetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [applied, setApplied] = useState(false)
+  const [ride, setRide] = useState(null)
 
-  const ride = MOCK_RIDES.find((r) => r.id === Number(id))
+  // ── 서버에서 라이드 상세 불러오기 ──
+  useEffect(() => {
+    api.get(`/api/rides/${id}`)
+      .then(res => setRide(res.data))
+      .catch(() => {
+        // 서버 꺼져 있으면 MOCK으로 대체
+        const mock = MOCK_RIDES.find(r => r.id === Number(id))
+        setRide(mock || null)
+      })
+  }, [id])
+
+  useEffect(() => {
+    document.title = ride
+      ? `같이타 - ${ride.origin} → ${ride.destination}`
+      : '같이타 - 상세'
+  }, [ride])
 
   if (!ride) {
     return (
@@ -104,7 +124,7 @@ function DetailPage() {
     )
   }
 
-  const { origin, destination, depart_at, total_seats, filled_seats, cost_total, rating, driver } = ride
+  const { origin, destination, depart_at, total_seats, filled_seats, cost_total, rating, status, driver } = ride
 
   const seatsLeft = total_seats - filled_seats
   const seatsColor =
@@ -112,8 +132,24 @@ function DetailPage() {
   const seatsBadge =
     seatsLeft === 0 ? 'bg-danger' : seatsLeft <= 1 ? 'bg-warning text-dark' : 'bg-success'
 
-  function handleApply() {
-    setApplied(true)
+  async function handleApply() {
+    try {
+      await api.post('/api/applications', {
+        ride_id: Number(id),
+        applicant_id: 1, // 로그인 연동 후 실제 유저 ID로 교체
+      })
+      setApplied(true)
+
+      // ✅ 신청 완료 후 서버에서 최신 ride 다시 불러오기 → 잔여 좌석 즉시 반영
+      const res = await api.get(`/api/rides/${id}`)
+      setRide(res.data)
+    } catch (err) {
+      if (err.response?.status === 409) {
+        alert('이미 신청한 동승이에요.')
+      } else {
+        alert('신청 중 오류가 발생했어요.')
+      }
+    }
   }
 
   return (
@@ -223,10 +259,10 @@ function DetailPage() {
         </div>
       </div>
 
-      {/* 운전자 정보 */}
+      {/* 모집자 정보 */}
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
-          <h6 className="fw-bold mb-3 text-secondary small text-uppercase">운전자 정보</h6>
+          <h6 className="fw-bold mb-3 text-secondary small text-uppercase">모집자 정보</h6>
           <div className="d-flex align-items-center gap-3">
             <div
               className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
@@ -280,13 +316,15 @@ function DetailPage() {
         </button>
       )}
 
-      {/* 후기 작성 버튼 */}
-      <button
-        className="btn btn-outline-secondary w-100 py-2 mt-2 fw-semibold"
-        onClick={() => navigate(`/rides/${id}/review`)}
-      >
-        후기 작성
-      </button>
+      {/* 후기 작성 버튼: 동승 완료 시에만 표시 */}
+      {status === 'completed' && (
+        <button
+          className="btn btn-outline-secondary w-100 py-2 mt-2 fw-semibold"
+          onClick={() => navigate(`/rides/${id}/review`)}
+        >
+          후기 작성
+        </button>
+      )}
 
     </div>
   )

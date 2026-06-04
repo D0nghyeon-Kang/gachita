@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../api/axios'
 
 const INITIAL_FORM = {
   from: '',
@@ -8,25 +9,37 @@ const INITIAL_FORM = {
   departureTime: '',
   seats: '1',
   estimatedCost: '',
+  rideType: 'carpool',
+  genderRestriction: 'any',
+  hasLuggage: false,
+  memo: '',
 }
 
 function WritePage() {
   const navigate = useNavigate()
   const [form, setForm] = useState(INITIAL_FORM)
 
+  useEffect(() => {
+    document.title = '같이타 - 글쓰기'
+  }, [])
+
   function handleChange(e) {
-    const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+    const { name, value, type, checked } = e.target
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    console.log('게시글 등록 입력값:', {
-      ...form,
-      seats: Number(form.seats),
-      estimatedCost: Number(form.estimatedCost),
-      departureTime: `${form.departureDate} ${form.departureTime}`,
-    })
+    try {
+      await api.post('/api/rides', {
+        ...form,
+        host_id: 1, // 로그인 연동 후 실제 유저 ID로 교체
+      })
+      alert('동승 모집 글이 등록됐어요!')
+      navigate('/')
+    } catch (err) {
+      alert('등록 중 오류가 발생했어요. 다시 시도해주세요.')
+    }
   }
 
   return (
@@ -140,8 +153,75 @@ function WritePage() {
               <div className="form-text">운전자 제외 탑승 가능 인원을 선택하세요.</div>
             </div>
 
+            {/* 유형 선택 */}
+            <div className="mb-3">
+              <label className="form-label fw-semibold">
+                유형 <span className="text-danger">*</span>
+              </label>
+              <div className="d-flex gap-4">
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="rideType"
+                    id="typeCarpool"
+                    value="carpool"
+                    checked={form.rideType === 'carpool'}
+                    onChange={handleChange}
+                  />
+                  <label className="form-check-label" htmlFor="typeCarpool">카풀</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="rideType"
+                    id="typeTaxi"
+                    value="taxi"
+                    checked={form.rideType === 'taxi'}
+                    onChange={handleChange}
+                  />
+                  <label className="form-check-label" htmlFor="typeTaxi">택시 동승</label>
+                </div>
+              </div>
+            </div>
+
+            {/* 성별 제한 */}
+            <div className="mb-3">
+              <label htmlFor="genderRestriction" className="form-label fw-semibold">성별 제한</label>
+              <select
+                id="genderRestriction"
+                name="genderRestriction"
+                className="form-select"
+                value={form.genderRestriction}
+                onChange={handleChange}
+              >
+                <option value="any">무관</option>
+                <option value="male">남성만</option>
+                <option value="female">여성만</option>
+              </select>
+            </div>
+
+            {/* 짐 가능 여부 */}
+            <div className="mb-3">
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  name="hasLuggage"
+                  id="hasLuggage"
+                  checked={form.hasLuggage}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label fw-semibold" htmlFor="hasLuggage">
+                  짐 가능
+                </label>
+                <div className="form-text">수하물·캐리어 등 짐을 가져올 수 있어요.</div>
+              </div>
+            </div>
+
             {/* 예상 비용 */}
-            <div className="mb-4">
+            <div className="mb-3">
               <label htmlFor="estimatedCost" className="form-label fw-semibold">
                 예상 비용 (원) <span className="text-danger">*</span>
               </label>
@@ -161,6 +241,22 @@ function WritePage() {
                 <span className="input-group-text">원</span>
               </div>
               <div className="form-text">1인 기준 예상 비용을 입력하세요.</div>
+            </div>
+
+            {/* 메모 */}
+            <div className="mb-4">
+              <label htmlFor="memo" className="form-label fw-semibold">
+                메모 <span className="text-secondary fw-normal">(선택)</span>
+              </label>
+              <textarea
+                id="memo"
+                name="memo"
+                className="form-control"
+                rows={3}
+                placeholder="동승자에게 전달할 내용을 자유롭게 작성하세요."
+                value={form.memo}
+                onChange={handleChange}
+              />
             </div>
 
             {/* 버튼 영역 */}
