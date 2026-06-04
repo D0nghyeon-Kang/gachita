@@ -26,15 +26,23 @@ router.post('/', (req, res) => {
     if (existing) return res.status(409).json({ error: '이미 신청한 동승이에요.' })
 
     const result = db.prepare(`
-      INSERT INTO applications (ride_id, applicant_id, status) VALUES (?, ?, 'pending')
+      INSERT INTO applications (ride_id, applicant_id, status) VALUES (?, ?, 'accepted')
     `).run(ride_id, applicant_id)
+
+    // 좌석 수 직접 감소 + 마감 처리
+    const updated = db.prepare(`
+      UPDATE rides
+      SET filled_seats = filled_seats + 1,
+          status = CASE WHEN filled_seats + 1 >= total_seats THEN 'closed' ELSE status END
+      WHERE id = ?
+    `).run(ride_id)
 
     res.status(201).json({
       id: result.lastInsertRowid,
       ride_id,
       applicant_id,
-      status: 'pending',
-      message: '신청이 완료됐어요! 출발 전 연락이 올 거예요.',  // 프론트 alert 문구와 동일
+      status: 'accepted',
+      message: '신청이 완료됐어요! 출발 전 연락이 올 거예요.',
     })
   } catch (err) {
     console.error(err)
@@ -55,8 +63,28 @@ router.patch('/:id', (req, res) => {
     const app = db.prepare('SELECT * FROM applications WHERE id = ?').get(req.params.id)
     if (!app) return res.status(404).json({ error: '신청 정보를 찾을 수 없어요.' })
 
+    const prevStatus = app.status
     db.prepare('UPDATE applications SET status = ? WHERE id = ?').run(status, req.params.id)
-    // trg_fill_seat 트리거가 filled_seats 자동 갱신
+
+    // 수락 시 filled_seats +1
+    if (status === 'accepted' && prevStatus === 'pending') {
+      db.prepare(`
+        UPDATE rides
+        SET filled_seats = filled_seats + 1,
+            status = CASE WHEN filled_seats + 1 >= total_seats THEN 'closed' ELSE status END
+        WHERE id = ?
+      `).run(app.ride_id)
+    }
+
+    // 수락 취소/거절 시 filled_seats -1
+    if ((status === 'rejected' || status === 'cancelled') && prevStatus === 'accepted') {
+      db.prepare(`
+        UPDATE rides
+        SET filled_seats = MAX(1, filled_seats - 1),
+            status = 'open'
+        WHERE id = ?
+      `).run(app.ride_id)
+    }
 
     res.json({ success: true, id: Number(req.params.id), status })
   } catch (err) {
