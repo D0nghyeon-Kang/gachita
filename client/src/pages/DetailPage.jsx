@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import api from '../api/axios'
 
 const MOCK_RIDES = [
   {
@@ -80,8 +81,18 @@ function DetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [applied, setApplied] = useState(false)
+  const [ride, setRide] = useState(null)
 
-  const ride = MOCK_RIDES.find((r) => r.id === Number(id))
+  // ── 서버에서 라이드 상세 불러오기 ──
+  useEffect(() => {
+    api.get(`/api/rides/${id}`)
+      .then(res => setRide(res.data))
+      .catch(() => {
+        // 서버 꺼져 있으면 MOCK으로 대체
+        const mock = MOCK_RIDES.find(r => r.id === Number(id))
+        setRide(mock || null)
+      })
+  }, [id])
 
   useEffect(() => {
     document.title = ride
@@ -121,8 +132,24 @@ function DetailPage() {
   const seatsBadge =
     seatsLeft === 0 ? 'bg-danger' : seatsLeft <= 1 ? 'bg-warning text-dark' : 'bg-success'
 
-  function handleApply() {
-    setApplied(true)
+  async function handleApply() {
+    try {
+      await api.post('/api/applications', {
+        ride_id: Number(id),
+        applicant_id: 1, // 로그인 연동 후 실제 유저 ID로 교체
+      })
+      setApplied(true)
+
+      // ✅ 신청 완료 후 서버에서 최신 ride 다시 불러오기 → 잔여 좌석 즉시 반영
+      const res = await api.get(`/api/rides/${id}`)
+      setRide(res.data)
+    } catch (err) {
+      if (err.response?.status === 409) {
+        alert('이미 신청한 동승이에요.')
+      } else {
+        alert('신청 중 오류가 발생했어요.')
+      }
+    }
   }
 
   return (

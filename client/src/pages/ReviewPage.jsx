@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import api from '../api/axios'
 
 function StarPicker({ rating, onRate }) {
   const [hovered, setHovered] = useState(0)
@@ -47,9 +48,26 @@ function ReviewPage() {
     document.title = '같이타 - 후기 작성'
   }, [])
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    console.log({ rideId: Number(id), rating, text })
+    try {
+      await api.post('/api/reviews', {
+        rideId: Number(id),
+        rating,
+        text,
+        reviewer_id: 1, // 로그인 연동 후 실제 유저 ID로 교체
+      })
+      alert('후기가 등록됐어요!')
+      navigate(`/rides/${id}`)
+    } catch (err) {
+      if (err.response?.status === 400) {
+        alert('완료된 동승에만 후기를 남길 수 있어요.')
+      } else if (err.response?.status === 409) {
+        alert('이미 후기를 작성했어요.')
+      } else {
+        alert('후기 등록 중 오류가 발생했어요.')
+      }
+    }
   }
 
   return (
