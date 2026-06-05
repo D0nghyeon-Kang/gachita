@@ -79,3 +79,29 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition {
+  animation: pageFadeIn 0.3s ease both;
+}
+
+@keyframes toastLifecycle {
+  0%   { opacity: 0; transform: translateY(-12px); }
+  8%   { opacity: 1; transform: translateY(0); }
+  85%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+.toast-item {
+  animation: toastLifecycle 3s ease forwards;
+}

@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { ToastProvider } from './context/ToastContext'
+import Toast from './components/Toast'
 import Navbar from './components/Navbar'
 import MainPage from './pages/MainPage'
 import DetailPage from './pages/DetailPage'
@@ -17,16 +19,18 @@ function Layout() {
   return (
     <>
       {showNavbar && <Navbar />}
-      <Routes>
-        <Route path="/" element={<MainPage />} />
-        <Route path="/rides/:id" element={<DetailPage />} />
-        <Route path="/rides/:id/review" element={<ReviewPage />} />
-        <Route path="/write" element={<WritePage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+      <div key={pathname} className="page-transition">
+        <Routes>
+          <Route path="/" element={<MainPage />} />
+          <Route path="/rides/:id" element={<DetailPage />} />
+          <Route path="/rides/:id/review" element={<ReviewPage />} />
+          <Route path="/write" element={<WritePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </div>
     </>
   )
 }
@@ -34,7 +38,10 @@ function Layout() {
 function App() {
   return (
     <BrowserRouter>
-      <Layout />
+      <ToastProvider>
+        <Toast />
+        <Layout />
+      </ToastProvider>
     </BrowserRouter>
   )
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import { useToast } from '../context/ToastContext'
 
 function StarPicker({ rating, onRate }) {
   const [hovered, setHovered] = useState(0)
@@ -41,6 +42,7 @@ const RATING_LABELS = ['', '별로예요', '그저 그래요', '괜찮아요', '
 function ReviewPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [rating, setRating] = useState(0)
   const [text, setText] = useState('')
 
@@ -57,7 +59,7 @@ function ReviewPage() {
         text,
         reviewer_id: 1, // 로그인 연동 후 실제 유저 ID로 교체
       })
-      alert('후기가 등록됐어요!')
+      showToast('후기가 등록되었습니다!')
       navigate(`/rides/${id}`)
     } catch (err) {
       if (err.response?.status === 400) {
