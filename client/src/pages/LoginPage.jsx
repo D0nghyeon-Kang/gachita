@@ -1,24 +1,43 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import api from '../api/axios'
 
-function LoginPage() {
+function LoginPage({ onLogin }) {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ studentId: '', password: '' })
+  const [form, setForm] = useState({ student_id: '', password: '' })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     document.title = '같이타 - 로그인'
+    if (localStorage.getItem('token')) navigate('/')
   }, [])
 
   function handleChange(e) {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
+    setError('')
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    // 로그인 API 연동 전 임시 처리
-    localStorage.setItem('isLoggedIn', 'true')
-    navigate('/')
+    if (!form.student_id || !form.password) {
+      setError('학번과 비밀번호를 입력해주세요.')
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await api.post('/api/auth/login', form)
+      localStorage.setItem('token', res.data.token)
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('user', JSON.stringify(res.data.user))
+      onLogin && onLogin(res.data.user)
+      navigate('/')
+    } catch (err) {
+      setError(err.response?.data?.error || '로그인에 실패했어요. 다시 시도해주세요.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -78,19 +97,25 @@ function LoginPage() {
           <div className="card-body p-4">
             <h2 className="fs-5 fw-bold mb-4" style={{ color: 'var(--color-text)' }}>로그인</h2>
 
+            {error && (
+              <div className="alert alert-danger py-2 px-3 small mb-3" role="alert">
+                {error}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} noValidate>
 
               <div className="mb-3">
-                <label htmlFor="studentId" className="form-label fw-semibold small">
+                <label htmlFor="student_id" className="form-label fw-semibold small">
                   학번
                 </label>
                 <input
-                  id="studentId"
-                  name="studentId"
+                  id="student_id"
+                  name="student_id"
                   type="text"
                   className="form-control"
-                  placeholder="학번을 입력하세요"
-                  value={form.studentId}
+                  placeholder="예: 2021001"
+                  value={form.student_id}
                   onChange={handleChange}
                   required
                   autoComplete="username"
@@ -116,22 +141,25 @@ function LoginPage() {
 
               <button
                 type="submit"
+                disabled={loading}
                 style={{
                   width: '100%',
                   padding: '13px',
                   border: 'none',
                   borderRadius: 'var(--radius-md)',
-                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-                  color: '#FFFFFF',
+                  background: loading
+                    ? 'rgba(100,116,139,0.1)'
+                    : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+                  color: loading ? 'var(--color-text-muted)' : '#FFFFFF',
                   fontFamily: 'var(--font-sans)',
                   fontWeight: 700,
                   fontSize: '1rem',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  boxShadow: loading ? 'none' : '0 2px 8px rgba(16,185,129,0.35)',
                   transition: 'opacity 0.15s ease',
                 }}
               >
-                로그인
+                {loading ? '로그인 중...' : '로그인'}
               </button>
 
             </form>
@@ -139,13 +167,23 @@ function LoginPage() {
             <p className="text-center mt-4 mb-0 small" style={{ color: 'var(--color-text-sub)' }}>
               계정이 없으신가요?{' '}
               <Link
-                to="/register"
+                to="/signup"
                 style={{ color: 'var(--color-primary-dark)', fontWeight: 700, textDecoration: 'none' }}
               >
                 회원가입
               </Link>
             </p>
           </div>
+        </div>
+
+        {/* 개발용 테스트 계정 안내 */}
+        <div className="mt-3 p-3 rounded-3" style={{ background: 'var(--color-primary-bg)', border: '1px solid var(--color-border)' }}>
+          <p className="small fw-semibold mb-1" style={{ color: 'var(--color-primary-dark)' }}>
+            테스트 계정
+          </p>
+          <p className="small mb-0 text-secondary">
+            학번: <strong>2021001</strong> &nbsp;|&nbsp; 비밀번호: <strong>password123</strong>
+          </p>
         </div>
 
       </div>

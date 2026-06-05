@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-function Navbar() {
+function Navbar({ user, onLogout }) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const isActive = (path) => pathname === path
@@ -8,6 +8,7 @@ function Navbar() {
 
   function handleLogout() {
     localStorage.removeItem('isLoggedIn')
+    onLogout && onLogout()
     navigate('/login')
   }
 
@@ -158,26 +159,46 @@ function Navbar() {
                 </button>
               </>
             ) : (
-              <Link
-                to="/login"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '7px 20px',
-                  borderRadius: 'var(--radius-pill)',
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  letterSpacing: '-0.01em',
-                  textDecoration: 'none',
-                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-                  color: '#FFFFFF',
-                  boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
-                  transition: 'opacity 0.15s ease',
-                }}
-              >
-                로그인
-              </Link>
+              <>
+                <Link
+                  to="/login"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '7px 20px',
+                    borderRadius: 'var(--radius-pill)',
+                    fontSize: '0.875rem',
+                    fontWeight: 700,
+                    letterSpacing: '-0.01em',
+                    textDecoration: 'none',
+                    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+                    color: '#FFFFFF',
+                    boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                    transition: 'opacity 0.15s ease',
+                  }}
+                >
+                  로그인
+                </Link>
+                <Link
+                  to="/signup"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '7px 16px',
+                    borderRadius: 'var(--radius-pill)',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    background: 'transparent',
+                    color: 'var(--color-text-sub)',
+                    border: '1px solid var(--color-border)',
+                    transition: 'all 0.18s ease',
+                  }}
+                >
+                  회원가입
+                </Link>
+              </>
             )}
 
           </div>

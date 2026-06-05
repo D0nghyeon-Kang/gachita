@@ -26,23 +26,15 @@ router.post('/', (req, res) => {
     if (existing) return res.status(409).json({ error: '이미 신청한 동승이에요.' })
 
     const result = db.prepare(`
-      INSERT INTO applications (ride_id, applicant_id, status) VALUES (?, ?, 'accepted')
+      INSERT INTO applications (ride_id, applicant_id, status) VALUES (?, ?, 'pending')
     `).run(ride_id, applicant_id)
-
-    // 좌석 수 직접 감소 + 마감 처리
-    const updated = db.prepare(`
-      UPDATE rides
-      SET filled_seats = filled_seats + 1,
-          status = CASE WHEN filled_seats + 1 >= total_seats THEN 'closed' ELSE status END
-      WHERE id = ?
-    `).run(ride_id)
 
     res.status(201).json({
       id: result.lastInsertRowid,
       ride_id,
       applicant_id,
-      status: 'accepted',
-      message: '신청이 완료됐어요! 출발 전 연락이 올 거예요.',
+      status: 'pending',
+      message: '신청이 완료됐어요! 모집자가 수락하면 확정돼요.',
     })
   } catch (err) {
     console.error(err)
