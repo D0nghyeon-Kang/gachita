@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import api from '../api/axios'
+import { useToast } from '../context/ToastContext'
 
 const MOCK_RIDES = [
   {
@@ -80,6 +81,7 @@ function StarRating({ rating, size = 16 }) {
 function DetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [applied, setApplied] = useState(false)
   const [ride, setRide] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -157,8 +159,7 @@ function DetailPage() {
         applicant_id: 1, // 로그인 연동 후 실제 유저 ID로 교체
       })
       setApplied(true)
-
-      // ✅ 신청 완료 후 서버에서 최신 ride 다시 불러오기 → 잔여 좌석 즉시 반영
+      showToast('참여 신청이 완료되었습니다!')
       const res = await api.get(`/api/rides/${id}`)
       setRide(res.data)
     } catch (err) {
@@ -309,33 +310,27 @@ function DetailPage() {
 
       {/* 참여 신청 버튼: 완료된 동승이면 숨김 */}
       {status !== 'completed' && (
-        applied ? (
-          <div className="alert alert-success text-center fw-semibold" role="alert">
-            신청이 완료됐어요! 출발 전 연락이 올 거예요.
-          </div>
-        ) : (
-          <button
-            style={{
-              width: '100%',
-              padding: '14px',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              fontFamily: 'var(--font-sans)',
-              fontWeight: 700,
-              fontSize: '1rem',
-              cursor: seatsLeft === 0 ? 'not-allowed' : 'pointer',
-              background: seatsLeft === 0
-                ? 'rgba(100,116,139,0.1)'
-                : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-              color: seatsLeft === 0 ? 'var(--color-text-muted)' : '#FFFFFF',
-              boxShadow: seatsLeft === 0 ? 'none' : '0 2px 8px rgba(16,185,129,0.3)',
-            }}
-            disabled={seatsLeft === 0}
-            onClick={handleApply}
-          >
-            {seatsLeft === 0 ? '모집이 마감됐어요' : '참여 신청하기'}
-          </button>
-        )
+        <button
+          style={{
+            width: '100%',
+            padding: '14px',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            fontFamily: 'var(--font-sans)',
+            fontWeight: 700,
+            fontSize: '1rem',
+            cursor: (applied || seatsLeft === 0) ? 'not-allowed' : 'pointer',
+            background: (applied || seatsLeft === 0)
+              ? 'rgba(100,116,139,0.1)'
+              : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+            color: (applied || seatsLeft === 0) ? 'var(--color-text-muted)' : '#FFFFFF',
+            boxShadow: (applied || seatsLeft === 0) ? 'none' : '0 2px 8px rgba(16,185,129,0.3)',
+          }}
+          disabled={applied || seatsLeft === 0}
+          onClick={!applied && seatsLeft > 0 ? handleApply : undefined}
+        >
+          {applied ? '신청 완료' : seatsLeft === 0 ? '모집이 마감됐어요' : '참여 신청하기'}
+        </button>
       )}
 
       {/* 후기 작성 버튼: 동승 완료 시에만 표시 */}

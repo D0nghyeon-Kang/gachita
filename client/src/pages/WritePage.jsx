@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import { useToast } from '../context/ToastContext'
 
 const INITIAL_FORM = {
   from: '',
@@ -17,6 +18,7 @@ const INITIAL_FORM = {
 
 function WritePage() {
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [form, setForm] = useState(INITIAL_FORM)
 
   useEffect(() => {
@@ -35,7 +37,8 @@ function WritePage() {
         ...form,
         host_id: 1, // 로그인 연동 후 실제 유저 ID로 교체
       })
-      alert('동승 모집 글이 등록됐어요!')
+      setForm(INITIAL_FORM)
+      showToast('동승 모집 글이 등록되었습니다!')
       navigate('/')
     } catch (err) {
       alert('등록 중 오류가 발생했어요. 다시 시도해주세요.')
