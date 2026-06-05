@@ -4,10 +4,12 @@ function Navbar({ user, onLogout }) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const isActive = (path) => pathname === path
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
 
   function handleLogout() {
+    localStorage.removeItem('isLoggedIn')
     onLogout && onLogout()
-    navigate('/')
+    navigate('/login')
   }
 
   return (
@@ -71,17 +73,32 @@ function Navbar({ user, onLogout }) {
         <div className="collapse navbar-collapse justify-content-end d-md-flex" id="navbarMenu">
           <div className="d-flex align-items-center gap-2 py-2 py-md-0">
 
-            {user ? (
+            {isLoggedIn ? (
               <>
                 <Link
                   to="/write"
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '5px',
-                    padding: '7px 16px', borderRadius: 'var(--radius-pill)',
-                    fontSize: '0.875rem', fontWeight: 600, transition: 'all 0.18s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '7px 16px',
+                    borderRadius: 'var(--radius-pill)',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    letterSpacing: '-0.01em',
+                    transition: 'all 0.18s ease',
+                    textDecoration: 'none',
                     ...(isActive('/write')
-                      ? { background: 'var(--color-primary)', color: '#FFFFFF', boxShadow: '0 2px 8px rgba(16,185,129,0.35)' }
-                      : { background: 'var(--color-primary-bg)', color: 'var(--color-primary-dark)', border: '1px solid var(--color-primary-light)' }),
+                      ? {
+                          background: 'var(--color-primary)',
+                          color: '#FFFFFF',
+                          boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                        }
+                      : {
+                          background: 'var(--color-primary-bg)',
+                          color: 'var(--color-primary-dark)',
+                          border: '1px solid var(--color-primary-light)',
+                        }),
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
@@ -93,27 +110,49 @@ function Navbar({ user, onLogout }) {
                 <Link
                   to="/profile"
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '5px',
-                    padding: '7px 16px', borderRadius: 'var(--radius-pill)',
-                    fontSize: '0.875rem', fontWeight: 600, transition: 'all 0.18s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '7px 16px',
+                    borderRadius: 'var(--radius-pill)',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    letterSpacing: '-0.01em',
+                    transition: 'all 0.18s ease',
+                    textDecoration: 'none',
                     ...(isActive('/profile')
-                      ? { background: 'var(--color-text)', color: '#FFFFFF' }
-                      : { background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)' }),
+                      ? {
+                          background: 'var(--color-text)',
+                          color: '#FFFFFF',
+                        }
+                      : {
+                          background: 'transparent',
+                          color: 'var(--color-text-sub)',
+                          border: '1px solid var(--color-border)',
+                        }),
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                     <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.029 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
                   </svg>
-                  {user.nickname}
+                  프로필
                 </Link>
 
                 <button
                   onClick={handleLogout}
                   style={{
-                    padding: '7px 14px', borderRadius: 'var(--radius-pill)',
-                    fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer',
-                    background: 'transparent', color: 'var(--color-text-sub)',
-                    border: '1px solid var(--color-border)', transition: 'all 0.18s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '7px 16px',
+                    borderRadius: 'var(--radius-pill)',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    letterSpacing: '-0.01em',
+                    transition: 'all 0.18s ease',
+                    background: 'transparent',
+                    color: 'var(--color-text-sub)',
+                    border: '1px solid var(--color-border)',
+                    cursor: 'pointer',
                   }}
                 >
                   로그아웃
@@ -124,11 +163,19 @@ function Navbar({ user, onLogout }) {
                 <Link
                   to="/login"
                   style={{
-                    padding: '7px 16px', borderRadius: 'var(--radius-pill)',
-                    fontSize: '0.875rem', fontWeight: 600,
-                    background: 'transparent', color: 'var(--color-text-sub)',
-                    border: '1px solid var(--color-border)', transition: 'all 0.18s ease',
-                    textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '7px 20px',
+                    borderRadius: 'var(--radius-pill)',
+                    fontSize: '0.875rem',
+                    fontWeight: 700,
+                    letterSpacing: '-0.01em',
+                    textDecoration: 'none',
+                    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+                    color: '#FFFFFF',
+                    boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                    transition: 'opacity 0.15s ease',
                   }}
                 >
                   로그인
@@ -136,12 +183,17 @@ function Navbar({ user, onLogout }) {
                 <Link
                   to="/signup"
                   style={{
-                    padding: '7px 16px', borderRadius: 'var(--radius-pill)',
-                    fontSize: '0.875rem', fontWeight: 600,
-                    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-                    color: '#FFFFFF', border: 'none',
-                    boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
-                    textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '7px 16px',
+                    borderRadius: 'var(--radius-pill)',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    background: 'transparent',
+                    color: 'var(--color-text-sub)',
+                    border: '1px solid var(--color-border)',
+                    transition: 'all 0.18s ease',
                   }}
                 >
                   회원가입

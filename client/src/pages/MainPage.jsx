@@ -131,9 +131,6 @@ function MainPage() {
   const [sort, setSort] = useState('최신순')
   const [searchOrigin, setSearchOrigin] = useState('')
 
-  useEffect(() => {
-    document.title = '같이타 - 메인'
-  }, [])
   const [searchDest, setSearchDest] = useState('')
   const [appliedOrigin, setAppliedOrigin] = useState('')
   const [appliedDest, setAppliedDest] = useState('')
@@ -377,7 +374,18 @@ function MainPage() {
             </h2>
           </div>
           <div className="row g-3">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="col-12 text-center py-5">
+                <div
+                  className="spinner-border"
+                  role="status"
+                  style={{ color: 'var(--color-primary)', width: '2.5rem', height: '2.5rem' }}
+                >
+                  <span className="visually-hidden">로딩 중...</span>
+                </div>
+                <p className="mt-3 small" style={{ color: 'var(--color-text-sub)' }}>동승 목록을 불러오는 중이에요.</p>
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="col-12 text-center py-5" style={{ color: 'var(--color-text-sub)' }}>
                 <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🔍</div>
                 <p style={{ fontWeight: 600 }}>검색 결과가 없어요.</p>
