@@ -5,7 +5,8 @@ import api from '../api/axios'
 function LoginPage({ onLogin }) {
   const navigate = useNavigate()
   const [form, setForm] = useState({ student_id: '', password: '' })
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState({})
+  const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -16,13 +17,28 @@ function LoginPage({ onLogin }) {
   function handleChange(e) {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
-    setError('')
+    setErrors((prev) => ({ ...prev, [name]: '' }))
+    setServerError('')
+  }
+
+  function validate() {
+    const newErrors = {}
+    if (!form.student_id) {
+      newErrors.student_id = '학번을 입력해주세요.'
+    } else if (!/^\d{8,10}$/.test(form.student_id)) {
+      newErrors.student_id = '학번은 8~10자리 숫자로 입력해주세요.'
+    }
+    if (!form.password) {
+      newErrors.password = '비밀번호를 입력해주세요.'
+    }
+    return newErrors
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.student_id || !form.password) {
-      setError('학번과 비밀번호를 입력해주세요.')
+    const newErrors = validate()
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
     setLoading(true)
@@ -34,7 +50,7 @@ function LoginPage({ onLogin }) {
       onLogin && onLogin(res.data.user)
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.error || '로그인에 실패했어요. 다시 시도해주세요.')
+      setServerError(err.response?.data?.error || '로그인에 실패했어요. 다시 시도해주세요.')
     } finally {
       setLoading(false)
     }
@@ -97,9 +113,9 @@ function LoginPage({ onLogin }) {
           <div className="card-body p-4">
             <h2 className="fs-5 fw-bold mb-4" style={{ color: 'var(--color-text)' }}>로그인</h2>
 
-            {error && (
+            {serverError && (
               <div className="alert alert-danger py-2 px-3 small mb-3" role="alert">
-                {error}
+                {serverError}
               </div>
             )}
 
@@ -113,13 +129,15 @@ function LoginPage({ onLogin }) {
                   id="student_id"
                   name="student_id"
                   type="text"
-                  className="form-control"
-                  placeholder="예: 2021001"
+                  className={`form-control ${errors.student_id ? 'is-invalid' : ''}`}
+                  placeholder="예: 20210001"
                   value={form.student_id}
                   onChange={handleChange}
-                  required
                   autoComplete="username"
                 />
+                {errors.student_id && (
+                  <p className="mt-1 mb-0 small" style={{ color: '#DC2626' }}>{errors.student_id}</p>
+                )}
               </div>
 
               <div className="mb-4">
@@ -130,13 +148,15 @@ function LoginPage({ onLogin }) {
                   id="password"
                   name="password"
                   type="password"
-                  className="form-control"
+                  className={`form-control ${errors.password ? 'is-invalid' : ''}`}
                   placeholder="비밀번호를 입력하세요"
                   value={form.password}
                   onChange={handleChange}
-                  required
                   autoComplete="current-password"
                 />
+                {errors.password && (
+                  <p className="mt-1 mb-0 small" style={{ color: '#DC2626' }}>{errors.password}</p>
+                )}
               </div>
 
               <button

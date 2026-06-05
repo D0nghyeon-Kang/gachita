@@ -8,9 +8,9 @@ function RegisterPage() {
     nickname: '',
     password: '',
     passwordConfirm: '',
-    gender: 'other',
+    gender: '',
   })
-  const [passwordMismatch, setPasswordMismatch] = useState(false)
+  const [errors, setErrors] = useState({})
 
   useEffect(() => {
     document.title = '같이타 - 회원가입'
@@ -19,15 +19,48 @@ function RegisterPage() {
   function handleChange(e) {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
-    if (name === 'passwordConfirm' || name === 'password') {
-      setPasswordMismatch(false)
+    setErrors((prev) => ({ ...prev, [name]: '' }))
+  }
+
+  function validate() {
+    const newErrors = {}
+
+    if (!form.studentId) {
+      newErrors.studentId = '학번을 입력해주세요.'
+    } else if (!/^\d{8,10}$/.test(form.studentId)) {
+      newErrors.studentId = '학번은 8~10자리 숫자로 입력해주세요.'
     }
+
+    if (!form.nickname) {
+      newErrors.nickname = '닉네임을 입력해주세요.'
+    } else if (form.nickname.length < 2 || form.nickname.length > 10) {
+      newErrors.nickname = '닉네임은 2~10자로 입력해주세요.'
+    }
+
+    if (!form.password) {
+      newErrors.password = '비밀번호를 입력해주세요.'
+    } else if (form.password.length < 6) {
+      newErrors.password = '비밀번호는 6자 이상으로 입력해주세요.'
+    }
+
+    if (!form.passwordConfirm) {
+      newErrors.passwordConfirm = '비밀번호 확인을 입력해주세요.'
+    } else if (form.password !== form.passwordConfirm) {
+      newErrors.passwordConfirm = '비밀번호가 일치하지 않아요.'
+    }
+
+    if (!form.gender) {
+      newErrors.gender = '성별을 선택해주세요.'
+    }
+
+    return newErrors
   }
 
   function handleSubmit(e) {
     e.preventDefault()
-    if (form.password !== form.passwordConfirm) {
-      setPasswordMismatch(true)
+    const newErrors = validate()
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
     // 회원가입 API 연동 전 임시 처리
@@ -101,13 +134,15 @@ function RegisterPage() {
                   id="reg-studentId"
                   name="studentId"
                   type="text"
-                  className="form-control"
+                  className={`form-control ${errors.studentId ? 'is-invalid' : ''}`}
                   placeholder="예: 20210001"
                   value={form.studentId}
                   onChange={handleChange}
-                  required
                   autoComplete="username"
                 />
+                {errors.studentId && (
+                  <p className="mt-1 mb-0 small" style={{ color: '#DC2626' }}>{errors.studentId}</p>
+                )}
               </div>
 
               <div className="mb-3">
@@ -118,13 +153,15 @@ function RegisterPage() {
                   id="reg-nickname"
                   name="nickname"
                   type="text"
-                  className="form-control"
-                  placeholder="사용할 닉네임을 입력하세요"
+                  className={`form-control ${errors.nickname ? 'is-invalid' : ''}`}
+                  placeholder="사용할 닉네임을 입력하세요 (2~10자)"
                   value={form.nickname}
                   onChange={handleChange}
-                  required
                   autoComplete="nickname"
                 />
+                {errors.nickname && (
+                  <p className="mt-1 mb-0 small" style={{ color: '#DC2626' }}>{errors.nickname}</p>
+                )}
               </div>
 
               <div className="mb-3">
@@ -135,13 +172,15 @@ function RegisterPage() {
                   id="reg-password"
                   name="password"
                   type="password"
-                  className="form-control"
-                  placeholder="비밀번호를 입력하세요"
+                  className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                  placeholder="6자 이상 입력하세요"
                   value={form.password}
                   onChange={handleChange}
-                  required
                   autoComplete="new-password"
                 />
+                {errors.password && (
+                  <p className="mt-1 mb-0 small" style={{ color: '#DC2626' }}>{errors.password}</p>
+                )}
               </div>
 
               <div className="mb-3">
@@ -152,20 +191,21 @@ function RegisterPage() {
                   id="reg-passwordConfirm"
                   name="passwordConfirm"
                   type="password"
-                  className={`form-control ${passwordMismatch ? 'is-invalid' : ''}`}
+                  className={`form-control ${errors.passwordConfirm ? 'is-invalid' : ''}`}
                   placeholder="비밀번호를 다시 입력하세요"
                   value={form.passwordConfirm}
                   onChange={handleChange}
-                  required
                   autoComplete="new-password"
                 />
-                {passwordMismatch && (
-                  <div className="invalid-feedback">비밀번호가 일치하지 않아요.</div>
+                {errors.passwordConfirm && (
+                  <p className="mt-1 mb-0 small" style={{ color: '#DC2626' }}>{errors.passwordConfirm}</p>
                 )}
               </div>
 
               <div className="mb-4">
-                <label className="form-label fw-semibold small">성별</label>
+                <label className="form-label fw-semibold small">
+                  성별 <span className="text-danger">*</span>
+                </label>
                 <div className="d-flex gap-3">
                   {[
                     { value: 'male',   label: '남성' },
@@ -188,6 +228,9 @@ function RegisterPage() {
                     </div>
                   ))}
                 </div>
+                {errors.gender && (
+                  <p className="mt-1 mb-0 small" style={{ color: '#DC2626' }}>{errors.gender}</p>
+                )}
               </div>
 
               <button
