@@ -27,3 +27,7 @@ npm-debug.log*
 
 # Claude Code
 CLAUDE.md
+server/db/*.db 
+server/db/*.db-shm 
+server/db/*.db-wal 
+*.bat 

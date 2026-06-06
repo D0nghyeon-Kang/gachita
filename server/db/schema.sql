@@ -1,6 +1,8 @@
 -- server/db/schema.sql
 PRAGMA foreign_keys = ON;
 PRAGMA journal_mode  = WAL;
+
+-- 기존 DB에 생성된 좌석 트리거 명시적 제거
 DROP TRIGGER IF EXISTS trg_fill_seat;
 DROP TRIGGER IF EXISTS trg_free_seat;
 
@@ -21,8 +23,6 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- ─────────────────────────────────────────
 -- rides
--- 라우터(rides.js)가 쓰는 컬럼명 기준으로 통일:
---   gender_restriction, has_luggage
 -- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS rides (
   id                  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,13 +63,11 @@ CREATE TABLE IF NOT EXISTS applications (
   UNIQUE (ride_id, applicant_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_applications_ride     ON applications (ride_id);
+CREATE INDEX IF NOT EXISTS idx_applications_ride      ON applications (ride_id);
 CREATE INDEX IF NOT EXISTS idx_applications_applicant ON applications (applicant_id);
 
 -- ─────────────────────────────────────────
 -- reviews
--- reviewModel.js 가 쓰는 컬럼명 기준으로 통일:
---   reviewee_id, rating, comment
 -- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS reviews (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,7 +84,7 @@ CREATE INDEX IF NOT EXISTS idx_reviews_ride     ON reviews (ride_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_reviewee ON reviews (reviewee_id);
 
 -- ─────────────────────────────────────────
--- notifications  ← 기존 schema에 없어서 추가
+-- notifications
 -- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS notifications (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,7 +99,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications (user_id, is_read);
 
 -- ─────────────────────────────────────────
--- manner_score_log  ← 기존 schema에 없어서 추가
+-- manner_score_log
 -- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS manner_score_log (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -117,40 +115,12 @@ CREATE INDEX IF NOT EXISTS idx_manner_log_user ON manner_score_log (user_id);
 -- TRIGGERS
 -- ─────────────────────────────────────────
 
--- filled_seats +1 (트리거 방식 사용 시)
--- ※ routes/applications.js 에서 직접 UPDATE도 하고 있으므로
---   applications.js 쪽 수동 UPDATE를 제거하거나 이 트리거를 DROP해야 중복 방지됨.
---   DB 담당자 단독 수정 범위: 트리거는 일단 DROP하고 라우터 코드에 맡김.
---   (트리거를 살리려면 applications.js 수정 필요 → 팀원 담당)
+-- trg_fill_seat / trg_free_seat 는 applications.js에서 직접 관리하므로 비활성화
 
--- trg_fill_seat / trg_free_seat 는 라우터와 중복이라 주석 처리
--- 팀원이 라우터 코드를 제거하면 아래 주석 해제
-
--- CREATE TRIGGER IF NOT EXISTS trg_fill_seat
---   AFTER UPDATE OF status ON applications
---   WHEN NEW.status = 'accepted' AND OLD.status = 'pending'
---   BEGIN
---     UPDATE rides
---        SET filled_seats = filled_seats + 1,
---            status = CASE WHEN filled_seats + 1 >= total_seats THEN 'closed' ELSE status END
---      WHERE id = NEW.ride_id;
---   END;
-
--- CREATE TRIGGER IF NOT EXISTS trg_free_seat
---   AFTER UPDATE OF status ON applications
---   WHEN NEW.status IN ('cancelled','rejected') AND OLD.status = 'accepted'
---   BEGIN
---     UPDATE rides
---        SET filled_seats = MAX(1, filled_seats - 1),
---            status = 'open'
---      WHERE id = NEW.ride_id;
---   END;
-
--- manner_score 자동 계산 (reviews.rating 기준 — 위에서 컬럼명 통일 완료)
+-- manner_score 자동 계산
 CREATE TRIGGER IF NOT EXISTS trg_manner_score
   AFTER INSERT ON reviews
   BEGIN
-    -- manner_score 업데이트
     UPDATE users
        SET manner_score = MIN(50, MAX(0,
              manner_score + CASE NEW.rating
@@ -164,7 +134,6 @@ CREATE TRIGGER IF NOT EXISTS trg_manner_score
            ride_count = ride_count + 1
      WHERE id = NEW.reviewee_id;
 
-    -- 로그 기록
     INSERT INTO manner_score_log (user_id, delta, reason)
     VALUES (
       NEW.reviewee_id,

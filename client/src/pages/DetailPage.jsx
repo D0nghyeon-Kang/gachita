@@ -1,15 +1,19 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import api from '../api/axios'
+import { useToast } from '../context/ToastContext'
 
 const MOCK_RIDES = [
   {
     id: 1,
-    from: '기숙사',
-    to: '서울역',
-    departureTime: '2026-05-26 08:30',
-    seatsLeft: 2,
-    estimatedCost: 4500,
+    origin: '기숙사',
+    destination: '서울역',
+    depart_at: '2026-05-26 08:30',
+    total_seats: 4,
+    filled_seats: 2,
+    cost_total: 4500,
     rating: 4.8,
+    status: 'open',
     driver: {
       name: '이준호',
       rating: 4.8,
@@ -19,12 +23,14 @@ const MOCK_RIDES = [
   },
   {
     id: 2,
-    from: '정문',
-    to: '강남역',
-    departureTime: '2026-05-26 09:00',
-    seatsLeft: 1,
-    estimatedCost: 7200,
+    origin: '정문',
+    destination: '강남역',
+    depart_at: '2026-05-26 09:00',
+    total_seats: 4,
+    filled_seats: 3,
+    cost_total: 7200,
     rating: 4.5,
+    status: 'completed',
     driver: {
       name: '박서연',
       rating: 4.5,
@@ -34,12 +40,14 @@ const MOCK_RIDES = [
   },
   {
     id: 3,
-    from: '후문',
-    to: '수원역',
-    departureTime: '2026-05-26 10:15',
-    seatsLeft: 0,
-    estimatedCost: 3800,
+    origin: '후문',
+    destination: '수원역',
+    depart_at: '2026-05-26 10:15',
+    total_seats: 4,
+    filled_seats: 4,
+    cost_total: 3800,
     rating: 4.2,
+    status: 'open',
     driver: {
       name: '최민준',
       rating: 4.2,
@@ -73,30 +81,94 @@ function StarRating({ rating, size = 16 }) {
 function DetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [applied, setApplied] = useState(false)
+  const [ride, setRide] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const ride = MOCK_RIDES.find((r) => r.id === Number(id))
+  // ── 서버에서 라이드 상세 불러오기 ──
+  useEffect(() => {
+    setLoading(true)
+    api.get(`/api/rides/${id}`)
+      .then(res => setRide(res.data))
+      .catch(() => {
+        // 서버 꺼져 있으면 MOCK으로 대체
+        const mock = MOCK_RIDES.find(r => r.id === Number(id))
+        setRide(mock || null)
+      })
+      .finally(() => setLoading(false))
+  }, [id])
+
+  useEffect(() => {
+    document.title = ride
+      ? `같이타 - ${ride.origin} → ${ride.destination}`
+      : '같이타 - 상세'
+  }, [ride])
+
+  if (loading) {
+    return (
+      <div className="container py-5 text-center">
+        <div
+          className="spinner-border"
+          role="status"
+          style={{ color: 'var(--color-primary)', width: '2.5rem', height: '2.5rem' }}
+        >
+          <span className="visually-hidden">로딩 중...</span>
+        </div>
+        <p className="mt-3 small text-secondary">동승 정보를 불러오는 중이에요.</p>
+      </div>
+    )
+  }
 
   if (!ride) {
     return (
       <div className="container py-5 text-center">
         <p className="text-secondary">동승 정보를 찾을 수 없어요.</p>
-        <button className="btn btn-outline-primary mt-2" onClick={() => navigate('/')}>
+        <button
+          style={{
+            marginTop: '8px',
+            padding: '8px 20px',
+            border: '1.5px solid var(--color-primary)',
+            borderRadius: 'var(--radius-pill)',
+            background: 'transparent',
+            color: 'var(--color-primary-dark)',
+            fontFamily: 'var(--font-sans)',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+          onClick={() => navigate('/')}
+        >
           목록으로 돌아가기
         </button>
       </div>
     )
   }
 
-  const { from, to, departureTime, seatsLeft, estimatedCost, rating, driver } = ride
+  const { origin, destination, depart_at, total_seats, filled_seats, cost_total, rating, status, driver } = ride
 
+  const seatsLeft = total_seats - filled_seats
   const seatsColor =
     seatsLeft === 0 ? 'text-danger' : seatsLeft <= 1 ? 'text-warning' : 'text-success'
   const seatsBadge =
     seatsLeft === 0 ? 'bg-danger' : seatsLeft <= 1 ? 'bg-warning text-dark' : 'bg-success'
 
-  function handleApply() {
-    setApplied(true)
+  async function handleApply() {
+    try {
+      await api.post('/api/applications', {
+        ride_id: Number(id),
+        applicant_id: 1, // 로그인 연동 후 실제 유저 ID로 교체
+      })
+      setApplied(true)
+      showToast('참여 신청이 완료되었습니다!')
+      const res = await api.get(`/api/rides/${id}`)
+      setRide(res.data)
+    } catch (err) {
+      if (err.response?.status === 409) {
+        alert('이미 신청한 동승이에요.')
+      } else {
+        alert('신청 중 오류가 발생했어요.')
+      }
+    }
   }
 
   return (
@@ -119,8 +191,15 @@ function DetailPage() {
         <div className="card-body p-4">
           <div className="d-flex align-items-center justify-content-center gap-3 mb-3">
             <div className="text-center">
-              <div className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
-                {from}
+              <div style={{
+                fontSize: '1rem',
+                fontWeight: 600,
+                padding: '8px 16px',
+                borderRadius: '9999px',
+                background: 'var(--color-primary-bg)',
+                color: 'var(--color-primary-dark)',
+              }}>
+                {origin}
               </div>
               <div className="small text-secondary mt-1">출발지</div>
             </div>
@@ -128,8 +207,15 @@ function DetailPage() {
               <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z" />
             </svg>
             <div className="text-center">
-              <div className="badge bg-success-subtle text-success fs-6 px-3 py-2 rounded-pill">
-                {to}
+              <div style={{
+                fontSize: '1rem',
+                fontWeight: 600,
+                padding: '8px 16px',
+                borderRadius: '9999px',
+                background: 'var(--color-primary-bg)',
+                color: 'var(--color-primary-dark)',
+              }}>
+                {destination}
               </div>
               <div className="small text-secondary mt-1">목적지</div>
             </div>
@@ -157,7 +243,7 @@ function DetailPage() {
                 </svg>
                 출발 시간
               </span>
-              <span className="fw-semibold">{departureTime}</span>
+              <span className="fw-semibold">{depart_at}</span>
             </li>
             <li className="d-flex justify-content-between align-items-center">
               <span className="text-secondary d-flex align-items-center gap-2">
@@ -177,7 +263,7 @@ function DetailPage() {
                 </svg>
                 예상 비용
               </span>
-              <span className="fw-bold text-primary">{estimatedCost.toLocaleString()}원</span>
+              <span className="fw-bold" style={{ color: 'var(--color-primary)' }}>{cost_total.toLocaleString()}원</span>
             </li>
             <li className="d-flex justify-content-between align-items-center">
               <span className="text-secondary d-flex align-items-center gap-2">
@@ -192,23 +278,25 @@ function DetailPage() {
         </div>
       </div>
 
-      {/* 운전자 정보 */}
+      {/* 모집자 정보 */}
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
-          <h6 className="fw-bold mb-3 text-secondary small text-uppercase">운전자 정보</h6>
+          <h6 className="fw-bold mb-3 text-secondary small text-uppercase">모집자 정보</h6>
           <div className="d-flex align-items-center gap-3">
             <div
-              className="rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center flex-shrink-0"
-              style={{ width: 52, height: 52 }}
+              className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              style={{ width: 52, height: 52, background: 'var(--color-primary-bg)' }}
               aria-hidden="true"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="text-primary" viewBox="0 0 16 16">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="var(--color-primary)" viewBox="0 0 16 16">
                 <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.029 10 8 10c-2.029 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
               </svg>
             </div>
             <div className="flex-grow-1">
               <div className="fw-semibold">{driver.name}</div>
-              <div className="small text-secondary">{driver.carModel}</div>
+              {driver.carModel && driver.carModel !== '차량 정보 없음' && (
+                <div className="small text-secondary">{driver.carModel}</div>
+              )}
             </div>
             <div className="text-end">
               <div className="small">
@@ -220,18 +308,38 @@ function DetailPage() {
         </div>
       </div>
 
-      {/* 참여 신청 버튼 */}
-      {applied ? (
-        <div className="alert alert-success text-center fw-semibold" role="alert">
-          신청이 완료됐어요! 출발 전 연락이 올 거예요.
-        </div>
-      ) : (
+      {/* 참여 신청 버튼: 완료된 동승이면 숨김 */}
+      {status !== 'completed' && (
         <button
-          className="btn btn-primary w-100 py-3 fw-semibold fs-6"
-          disabled={seatsLeft === 0}
-          onClick={handleApply}
+          style={{
+            width: '100%',
+            padding: '14px',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            fontFamily: 'var(--font-sans)',
+            fontWeight: 700,
+            fontSize: '1rem',
+            cursor: (applied || seatsLeft === 0) ? 'not-allowed' : 'pointer',
+            background: (applied || seatsLeft === 0)
+              ? 'rgba(100,116,139,0.1)'
+              : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+            color: (applied || seatsLeft === 0) ? 'var(--color-text-muted)' : '#FFFFFF',
+            boxShadow: (applied || seatsLeft === 0) ? 'none' : '0 2px 8px rgba(16,185,129,0.3)',
+          }}
+          disabled={applied || seatsLeft === 0}
+          onClick={!applied && seatsLeft > 0 ? handleApply : undefined}
         >
-          {seatsLeft === 0 ? '모집이 마감됐어요' : '참여 신청하기'}
+          {applied ? '신청 완료' : seatsLeft === 0 ? '모집이 마감됐어요' : '참여 신청하기'}
+        </button>
+      )}
+
+      {/* 후기 작성 버튼: 동승 완료 시에만 표시 */}
+      {status === 'completed' && (
+        <button
+          className="btn btn-outline-secondary w-100 py-2 mt-2 fw-semibold"
+          onClick={() => navigate(`/rides/${id}/review`)}
+        >
+          후기 작성
         </button>
       )}
 
