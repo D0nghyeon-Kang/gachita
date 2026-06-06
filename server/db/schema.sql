@@ -2,7 +2,13 @@
 PRAGMA foreign_keys = ON;
 PRAGMA journal_mode  = WAL;
 
--- ── 유저 ──────────────────────────────────────
+-- 기존 DB에 생성된 좌석 트리거 명시적 제거
+DROP TRIGGER IF EXISTS trg_fill_seat;
+DROP TRIGGER IF EXISTS trg_free_seat;
+
+-- ─────────────────────────────────────────
+-- users
+-- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   student_id    TEXT    NOT NULL UNIQUE,
@@ -15,23 +21,24 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
--- ── 동승 게시글 ────────────────────────────────
--- 프론트 필드: from, to, departureDate, departureTime, seats,
---             estimatedCost, rideType, genderRestriction, hasLuggage, memo
+-- ─────────────────────────────────────────
+-- rides
+-- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS rides (
   id                  INTEGER PRIMARY KEY AUTOINCREMENT,
   host_id             INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  origin              TEXT    NOT NULL,          -- from
-  destination         TEXT    NOT NULL,          -- to
-  depart_at           TEXT    NOT NULL,          -- departureDate + departureTime
+  origin              TEXT    NOT NULL,
+  destination         TEXT    NOT NULL,
+  depart_at           TEXT    NOT NULL,
   total_seats         INTEGER NOT NULL CHECK (total_seats BETWEEN 1 AND 6),
   filled_seats        INTEGER NOT NULL DEFAULT 1,
-  cost_total          INTEGER NOT NULL CHECK (cost_total >= 0),   -- estimatedCost
+  cost_total          INTEGER NOT NULL CHECK (cost_total >= 0),
   ride_type           TEXT    NOT NULL DEFAULT 'carpool'
-                              CHECK (ride_type IN ('carpool','taxi')),  -- rideType
+                              CHECK (ride_type IN ('carpool','taxi')),
   gender_restriction  TEXT    NOT NULL DEFAULT 'any'
                               CHECK (gender_restriction IN ('any','male','female')),
-  has_luggage         INTEGER NOT NULL DEFAULT 0,  -- hasLuggage (0/1)
+  has_luggage         INTEGER NOT NULL DEFAULT 0,
+  car_model           TEXT,
   memo                TEXT,
   status              TEXT    NOT NULL DEFAULT 'open'
                               CHECK (status IN ('open','closed','completed','cancelled')),
@@ -43,7 +50,9 @@ CREATE INDEX IF NOT EXISTS idx_rides_status    ON rides (status);
 CREATE INDEX IF NOT EXISTS idx_rides_depart_at ON rides (depart_at);
 CREATE INDEX IF NOT EXISTS idx_rides_route     ON rides (origin, destination);
 
--- ── 참여 신청 ──────────────────────────────────
+-- ─────────────────────────────────────────
+-- applications
+-- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS applications (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   ride_id       INTEGER NOT NULL REFERENCES rides(id)  ON DELETE CASCADE,
@@ -54,47 +63,67 @@ CREATE TABLE IF NOT EXISTS applications (
   UNIQUE (ride_id, applicant_id)
 );
 
--- ── 후기 ───────────────────────────────────────
--- 프론트 필드: rideId, rating, text
+CREATE INDEX IF NOT EXISTS idx_applications_ride      ON applications (ride_id);
+CREATE INDEX IF NOT EXISTS idx_applications_applicant ON applications (applicant_id);
+
+-- ─────────────────────────────────────────
+-- reviews
+-- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS reviews (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   ride_id      INTEGER NOT NULL REFERENCES rides(id)  ON DELETE CASCADE,
   reviewer_id  INTEGER NOT NULL REFERENCES users(id)  ON DELETE CASCADE,
-  score        INTEGER NOT NULL CHECK (score BETWEEN 1 AND 5),   -- rating
-  content      TEXT,                                              -- text
+  reviewee_id  INTEGER NOT NULL REFERENCES users(id)  ON DELETE CASCADE,
+  rating       INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment      TEXT,
   created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
   UNIQUE (ride_id, reviewer_id)
 );
 
--- ── 트리거: 신청 수락 시 filled_seats +1 ────────
-CREATE TRIGGER IF NOT EXISTS trg_fill_seat
-  AFTER UPDATE OF status ON applications
-  WHEN NEW.status = 'accepted' AND OLD.status = 'pending'
-  BEGIN
-    UPDATE rides
-       SET filled_seats = filled_seats + 1,
-           status = CASE WHEN filled_seats + 1 >= total_seats THEN 'closed' ELSE status END
-     WHERE id = NEW.ride_id;
-  END;
+CREATE INDEX IF NOT EXISTS idx_reviews_ride     ON reviews (ride_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_reviewee ON reviews (reviewee_id);
 
--- ── 트리거: 수락 취소 시 filled_seats -1 ────────
-CREATE TRIGGER IF NOT EXISTS trg_free_seat
-  AFTER UPDATE OF status ON applications
-  WHEN NEW.status IN ('cancelled','rejected') AND OLD.status = 'accepted'
-  BEGIN
-    UPDATE rides
-       SET filled_seats = MAX(1, filled_seats - 1),
-           status = 'open'
-     WHERE id = NEW.ride_id;
-  END;
+-- ─────────────────────────────────────────
+-- notifications
+-- ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS notifications (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  ride_id    INTEGER REFERENCES rides(id) ON DELETE SET NULL,
+  type       TEXT    NOT NULL,
+  message    TEXT    NOT NULL,
+  is_read    INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+);
 
--- ── 트리거: 후기 등록 시 manner_score + ride_count 갱신 ──
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications (user_id, is_read);
+
+-- ─────────────────────────────────────────
+-- manner_score_log
+-- ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS manner_score_log (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  delta      REAL    NOT NULL,
+  reason     TEXT,
+  created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_manner_log_user ON manner_score_log (user_id);
+
+-- ─────────────────────────────────────────
+-- TRIGGERS
+-- ─────────────────────────────────────────
+
+-- trg_fill_seat / trg_free_seat 는 applications.js에서 직접 관리하므로 비활성화
+
+-- manner_score 자동 계산
 CREATE TRIGGER IF NOT EXISTS trg_manner_score
   AFTER INSERT ON reviews
   BEGIN
     UPDATE users
        SET manner_score = MIN(50, MAX(0,
-             manner_score + CASE NEW.score
+             manner_score + CASE NEW.rating
                WHEN 5 THEN  0.5
                WHEN 4 THEN  0.2
                WHEN 3 THEN  0.0
@@ -103,12 +132,31 @@ CREATE TRIGGER IF NOT EXISTS trg_manner_score
              END
            )),
            ride_count = ride_count + 1
-     WHERE id = NEW.reviewer_id;
+     WHERE id = NEW.reviewee_id;
+
+    INSERT INTO manner_score_log (user_id, delta, reason)
+    VALUES (
+      NEW.reviewee_id,
+      CASE NEW.rating
+        WHEN 5 THEN  0.5
+        WHEN 4 THEN  0.2
+        WHEN 3 THEN  0.0
+        WHEN 2 THEN -0.2
+        WHEN 1 THEN -0.5
+      END,
+      'review on ride ' || NEW.ride_id
+    );
   END;
 
--- ── 트리거: updated_at 자동 갱신 ────────────────
+-- updated_at 자동 갱신
 CREATE TRIGGER IF NOT EXISTS trg_rides_updated
   AFTER UPDATE ON rides
   BEGIN
     UPDATE rides SET updated_at = datetime('now') WHERE id = NEW.id;
+  END;
+
+CREATE TRIGGER IF NOT EXISTS trg_users_updated
+  AFTER UPDATE ON users
+  BEGIN
+    UPDATE users SET updated_at = datetime('now') WHERE id = NEW.id;
   END;

@@ -12,6 +12,16 @@
     "dev:server": "npm run dev --workspace=server",
     "lint": "eslint client/src server --ext .js,.jsx"
   },
-  "keywords": ["carpool", "matching", "university", "open-source"],
-  "license": "MIT"
+  "keywords": [
+    "carpool",
+    "matching",
+    "university",
+    "open-source"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.10.0",
+    "dotenv": "^17.4.2"
+  }
 }
