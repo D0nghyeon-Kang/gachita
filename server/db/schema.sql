@@ -1,6 +1,8 @@
 -- server/db/schema.sql
 PRAGMA foreign_keys = ON;
 PRAGMA journal_mode  = WAL;
+DROP TRIGGER IF EXISTS trg_fill_seat;
+DROP TRIGGER IF EXISTS trg_free_seat;
 
 -- ─────────────────────────────────────────
 -- users
