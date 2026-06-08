@@ -1,25 +1,30 @@
-// server/routes/applications.js
-// ─────────────────────────────────────────────────────────────
-// 핵심 수정:
-//   기존 코드가 status 변경 + 직접 filled_seats UPDATE를 둘 다 했음.
-//   schema.sql의 트리거(trg_fill_seat, trg_free_seat)를 주석 처리했으므로
-//   이 라우터에서 filled_seats를 직접 관리함 (중복 제거 완료).
-//
-//   POST /: status를 바로 'accepted'로 넣던 것을 'pending'으로 변경
-//           → 모집자가 수락/거절할 수 있도록
-// ─────────────────────────────────────────────────────────────
-const express   = require('express');
-const router    = express.Router();
-const { getDb } = require('../db/db');
+const express    = require('express');
+const router     = express.Router();
+const jwt        = require('jsonwebtoken');
+const { getDb }  = require('../db/db');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'gachita-dev-secret';
+
+function extractUserId(req) {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return null;
+  try {
+    return jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET).id;
+  } catch {
+    return null;
+  }
+}
 
 // POST /api/applications — 동승 신청
 router.post('/', (req, res) => {
   try {
     const db = getDb();
-    const { ride_id, applicant_id } = req.body;
+    const applicant_id = extractUserId(req);
+    if (!applicant_id) return res.status(401).json({ error: '로그인이 필요합니다.' });
 
-    if (!ride_id || !applicant_id) {
-      return res.status(400).json({ error: 'ride_id와 applicant_id가 필요합니다.' });
+    const { ride_id } = req.body;
+    if (!ride_id) {
+      return res.status(400).json({ error: 'ride_id가 필요합니다.' });
     }
 
     // 라이드 존재 및 상태 확인

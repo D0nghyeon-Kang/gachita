@@ -403,7 +403,16 @@ function ProfilePage() {
             <p className="text-secondary small mb-0 text-center py-2">신청한 동승이 없습니다.</p>
           ) : (
             appliedRides.map((ride) => (
-              <RideRowCard key={ride.id} ride={ride} />
+              <div key={ride.id}>
+                <RideRowCard ride={ride} />
+                <div className="ms-1 mb-2" style={{ marginTop: '-6px' }}>
+                  {ride.apply_status === 'accepted' ? (
+                    <span className="badge bg-success-subtle text-success rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>수락됨</span>
+                  ) : (
+                    <span className="badge bg-warning-subtle text-warning rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>승인 대기 중</span>
+                  )}
+                </div>
+              </div>
             ))
           )}
         </div>
