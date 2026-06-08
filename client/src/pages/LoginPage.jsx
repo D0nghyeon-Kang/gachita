@@ -47,8 +47,8 @@ function LoginPage() {
     const newErrors = {}
     if (!form.student_id) {
       newErrors.student_id = '학번을 입력해주세요.'
-    } else if (!/^\d{8,10}$/.test(form.student_id)) {
-      newErrors.student_id = '학번은 8~10자리 숫자로 입력해주세요.'
+    } else if (!/^\d{8}$/.test(form.student_id)) {
+      newErrors.student_id = '학번은 8자리 숫자로 입력해주세요.'
     }
     if (!form.password) {
       newErrors.password = '비밀번호를 입력해주세요.'

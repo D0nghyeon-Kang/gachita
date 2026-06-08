@@ -48,8 +48,8 @@ function RegisterPage() {
 
     if (!form.studentId) {
       newErrors.studentId = '학번을 입력해주세요.'
-    } else if (!/^\d{8,10}$/.test(form.studentId)) {
-      newErrors.studentId = '학번은 8~10자리 숫자로 입력해주세요.'
+    } else if (!/^\d{8}$/.test(form.studentId)) {
+      newErrors.studentId = '학번은 8자리 숫자로 입력해주세요.'
     }
 
     if (!form.nickname) {

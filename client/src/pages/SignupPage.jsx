@@ -36,6 +36,10 @@ function SignupPage() {
       setError('모든 필수 항목을 입력해주세요.')
       return
     }
+    if (!/^\d{8}$/.test(form.student_id)) {
+      setError('학번은 8자리 숫자로 입력해주세요.')
+      return
+    }
     if (form.password !== form.password_confirm) {
       setError('비밀번호가 일치하지 않아요.')
       return
