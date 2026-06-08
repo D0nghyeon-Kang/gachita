@@ -1,7 +1,20 @@
 // server/routes/rides.js
-const express = require('express')
-const router  = express.Router()
-const { getDb } = require('../db/db')
+const express    = require('express')
+const router     = express.Router()
+const jwt        = require('jsonwebtoken')
+const { getDb }  = require('../db/db')
+
+const JWT_SECRET = process.env.JWT_SECRET || 'gachita-dev-secret'
+
+function extractUserId(req) {
+  const auth = req.headers.authorization
+  if (!auth?.startsWith('Bearer ')) return null
+  try {
+    return jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET).id
+  } catch {
+    return null
+  }
+}
 
 // ── GET /api/rides  (메인페이지 목록)
 // 쿼리: ?type=카풀&origin=기숙사&destination=강남역&sort=latest
@@ -62,20 +75,19 @@ router.get('/:id', (req, res) => {
 })
 
 // ── POST /api/rides  (글쓰기 등록)
-// 프론트 WritePage 폼: from, to, departureDate, departureTime,
-//                     seats, estimatedCost, rideType, genderRestriction, hasLuggage, memo
 router.post('/', (req, res) => {
   try {
     const db = getDb()
+    const host_id = extractUserId(req)
+    if (!host_id) return res.status(401).json({ error: '로그인이 필요합니다.' })
+
     const {
       from, to,
       departureDate, departureTime,
       seats, estimatedCost,
       rideType, genderRestriction, hasLuggage, memo,
-      host_id,   // 로그인 연동 전: 임시로 body에서 받음
     } = req.body
 
-    // 필수값 검증
     if (!from || !to || !departureDate || !departureTime || !seats || !estimatedCost) {
       return res.status(400).json({ error: '필수 항목을 모두 입력해주세요.' })
     }
@@ -88,7 +100,7 @@ router.post('/', (req, res) => {
          ride_type, gender_restriction, has_luggage, memo)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      host_id || 1,   // 로그인 전 임시 host_id=1
+      host_id,
       from, to, depart_at,
       Number(seats),
       Number(estimatedCost),
