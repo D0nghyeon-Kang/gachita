@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import RideCard from '../components/RideCard'
-import api from '../api/axios'
 
 const MOCK_RIDES = [
   {
@@ -125,49 +124,28 @@ const STEPS = [
 ]
 
 function MainPage() {
-  const [rides, setRides] = useState([])
-  const [loading, setLoading] = useState(false)
   const [activeFilter, setActiveFilter] = useState('전체')
   const [sort, setSort] = useState('최신순')
   const [searchOrigin, setSearchOrigin] = useState('')
 
+  useEffect(() => {
+    document.title = '가치타 - 메인'
+  }, [])
   const [searchDest, setSearchDest] = useState('')
   const [appliedOrigin, setAppliedOrigin] = useState('')
   const [appliedDest, setAppliedDest] = useState('')
-
-  useEffect(() => {
-    document.title = '같이타 - 메인'
-  }, [])
-
-  // ── 서버에서 라이드 목록 불러오기 ──
-  useEffect(() => {
-    fetchRides()
-  }, [activeFilter, sort, appliedOrigin, appliedDest])
-
-  async function fetchRides() {
-    setLoading(true)
-    try {
-      const params = {}
-      if (activeFilter !== '전체') params.type = activeFilter
-      if (sort !== '최신순') params.sort = sort
-      if (appliedOrigin) params.origin = appliedOrigin
-      if (appliedDest) params.destination = appliedDest
-      const res = await api.get('/api/rides', { params })
-      setRides(res.data)
-    } catch (err) {
-      console.error('라이드 목록 불러오기 실패:', err)
-      setRides(MOCK_RIDES) // 서버 꺼져 있으면 MOCK으로 대체
-    } finally {
-      setLoading(false)
-    }
-  }
 
   function handleSearch() {
     setAppliedOrigin(searchOrigin.trim())
     setAppliedDest(searchDest.trim())
   }
 
-  const filtered = rides
+  const filtered = MOCK_RIDES.filter((r) => {
+    if (activeFilter !== '전체' && r.type !== activeFilter) return false
+    if (appliedOrigin && !r.origin.includes(appliedOrigin)) return false
+    if (appliedDest && !r.destination.includes(appliedDest)) return false
+    return true
+  })
 
   return (
     <main style={{ background: 'var(--color-bg)' }}>
@@ -374,18 +352,7 @@ function MainPage() {
             </h2>
           </div>
           <div className="row g-3">
-            {loading ? (
-              <div className="col-12 text-center py-5">
-                <div
-                  className="spinner-border"
-                  role="status"
-                  style={{ color: 'var(--color-primary)', width: '2.5rem', height: '2.5rem' }}
-                >
-                  <span className="visually-hidden">로딩 중...</span>
-                </div>
-                <p className="mt-3 small" style={{ color: 'var(--color-text-sub)' }}>동승 목록을 불러오는 중이에요.</p>
-              </div>
-            ) : filtered.length === 0 ? (
+            {filtered.length === 0 ? (
               <div className="col-12 text-center py-5" style={{ color: 'var(--color-text-sub)' }}>
                 <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🔍</div>
                 <p style={{ fontWeight: 600 }}>검색 결과가 없어요.</p>
@@ -449,7 +416,7 @@ function MainPage() {
       <section style={{ padding: '40px 0', background: 'linear-gradient(160deg, #ECFDF5 0%, #D1FAE5 100%)' }}>
         <div className="container">
           <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '24px', textAlign: 'center' }}>
-            같이타와 함께한 순간들
+            가치타와 함께한 순간들
           </h2>
           <div className="row g-3 justify-content-center">
             {[
@@ -574,7 +541,7 @@ function MainPage() {
                 </svg>
               </span>
               <span style={{ fontWeight: 700, color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem' }}>
-                같이타
+                가치타
               </span>
               <span style={{ fontSize: '0.75rem' }}>×</span>
               <span style={{ fontSize: '0.85rem' }}>단국대학교</span>

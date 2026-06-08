@@ -5,7 +5,7 @@ function NotFoundPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    document.title = '같이타 - 페이지를 찾을 수 없습니다'
+    document.title = '가치타 - 페이지를 찾을 수 없습니다'
   }, [])
 
   return (

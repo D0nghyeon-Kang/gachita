@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../api/axios'
-import { useToast } from '../context/ToastContext'
-import { useAuth } from '../context/AuthContext'
 
 const INITIAL_FORM = {
   from: '',
@@ -19,33 +16,25 @@ const INITIAL_FORM = {
 
 function WritePage() {
   const navigate = useNavigate()
-  const { showToast } = useToast()
-  const { user, token } = useAuth()
   const [form, setForm] = useState(INITIAL_FORM)
 
   useEffect(() => {
-    document.title = '같이타 - 글쓰기'
-    if (!token) navigate('/login', { replace: true })
-  }, [token])
+    document.title = '가치타 - 글쓰기'
+  }, [])
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault()
-    try {
-      await api.post('/api/rides', {
-        ...form,
-        host_id: user.id,
-      })
-      setForm(INITIAL_FORM)
-      showToast('동승 모집 글이 등록되었습니다!')
-      navigate('/')
-    } catch (err) {
-      alert('등록 중 오류가 발생했어요. 다시 시도해주세요.')
-    }
+    console.log('게시글 등록 입력값:', {
+      ...form,
+      seats: Number(form.seats),
+      estimatedCost: Number(form.estimatedCost),
+      departureTime: `${form.departureDate} ${form.departureTime}`,
+    })
   }
 
   return (
@@ -152,7 +141,7 @@ function WritePage() {
                 onChange={handleChange}
                 required
               >
-                {[1, 2, 3, 4, 5, 6].map((n) => (
+                {[1, 2, 3, 4].map((n) => (
                   <option key={n} value={n}>{n}명</option>
                 ))}
               </select>

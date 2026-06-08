@@ -1,8 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import api from '../api/axios'
-import { useToast } from '../context/ToastContext'
-import { useAuth } from '../context/AuthContext'
 
 const MOCK_RIDES = [
   {
@@ -82,45 +79,15 @@ function StarRating({ rating, size = 16 }) {
 function DetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { showToast } = useToast()
-  const { user, isLoggedIn } = useAuth()
   const [applied, setApplied] = useState(false)
-  const [ride, setRide] = useState(null)
-  const [loading, setLoading] = useState(true)
 
-  // ── 서버에서 라이드 상세 불러오기 ──
-  useEffect(() => {
-    setLoading(true)
-    api.get(`/api/rides/${id}`)
-      .then(res => setRide(res.data))
-      .catch(() => {
-        // 서버 꺼져 있으면 MOCK으로 대체
-        const mock = MOCK_RIDES.find(r => r.id === Number(id))
-        setRide(mock || null)
-      })
-      .finally(() => setLoading(false))
-  }, [id])
+  const ride = MOCK_RIDES.find((r) => r.id === Number(id))
 
   useEffect(() => {
     document.title = ride
-      ? `같이타 - ${ride.origin} → ${ride.destination}`
-      : '같이타 - 상세'
+      ? `가치타 - ${ride.origin} → ${ride.destination}`
+      : '가치타 - 상세'
   }, [ride])
-
-  if (loading) {
-    return (
-      <div className="container py-5 text-center">
-        <div
-          className="spinner-border"
-          role="status"
-          style={{ color: 'var(--color-primary)', width: '2.5rem', height: '2.5rem' }}
-        >
-          <span className="visually-hidden">로딩 중...</span>
-        </div>
-        <p className="mt-3 small text-secondary">동승 정보를 불러오는 중이에요.</p>
-      </div>
-    )
-  }
 
   if (!ride) {
     return (
@@ -154,26 +121,8 @@ function DetailPage() {
   const seatsBadge =
     seatsLeft === 0 ? 'bg-danger' : seatsLeft <= 1 ? 'bg-warning text-dark' : 'bg-success'
 
-  async function handleApply() {
-    if (!isLoggedIn) {
-      navigate('/login')
-      return
-    }
-    try {
-      await api.post('/api/applications', {
-        ride_id: Number(id),
-      })
-      setApplied(true)
-      showToast('참여 신청이 완료되었습니다!')
-      const res = await api.get(`/api/rides/${id}`)
-      setRide(res.data)
-    } catch (err) {
-      if (err.response?.status === 409) {
-        alert('이미 신청한 동승이에요.')
-      } else {
-        alert('신청 중 오류가 발생했어요.')
-      }
-    }
+  function handleApply() {
+    setApplied(true)
   }
 
   return (
@@ -299,9 +248,7 @@ function DetailPage() {
             </div>
             <div className="flex-grow-1">
               <div className="fw-semibold">{driver.name}</div>
-              {driver.carModel && driver.carModel !== '차량 정보 없음' && (
-                <div className="small text-secondary">{driver.carModel}</div>
-              )}
+              <div className="small text-secondary">{driver.carModel}</div>
             </div>
             <div className="text-end">
               <div className="small">
@@ -313,8 +260,12 @@ function DetailPage() {
         </div>
       </div>
 
-      {/* 참여 신청 버튼: 완료된 동승이면 숨김 */}
-      {status !== 'completed' && (
+      {/* 참여 신청 버튼 */}
+      {applied ? (
+        <div className="alert alert-success text-center fw-semibold" role="alert">
+          신청이 완료됐어요! 출발 전 연락이 올 거예요.
+        </div>
+      ) : (
         <button
           style={{
             width: '100%',
@@ -324,17 +275,17 @@ function DetailPage() {
             fontFamily: 'var(--font-sans)',
             fontWeight: 700,
             fontSize: '1rem',
-            cursor: (applied || seatsLeft === 0) ? 'not-allowed' : 'pointer',
-            background: (applied || seatsLeft === 0)
+            cursor: seatsLeft === 0 ? 'not-allowed' : 'pointer',
+            background: seatsLeft === 0
               ? 'rgba(100,116,139,0.1)'
               : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-            color: (applied || seatsLeft === 0) ? 'var(--color-text-muted)' : '#FFFFFF',
-            boxShadow: (applied || seatsLeft === 0) ? 'none' : '0 2px 8px rgba(16,185,129,0.3)',
+            color: seatsLeft === 0 ? 'var(--color-text-muted)' : '#FFFFFF',
+            boxShadow: seatsLeft === 0 ? 'none' : '0 2px 8px rgba(16,185,129,0.3)',
           }}
-          disabled={applied || seatsLeft === 0}
-          onClick={!applied && seatsLeft > 0 ? handleApply : undefined}
+          disabled={seatsLeft === 0}
+          onClick={handleApply}
         >
-          {applied ? '신청 완료' : seatsLeft === 0 ? '모집이 마감됐어요' : '참여 신청하기'}
+          {seatsLeft === 0 ? '모집이 마감됐어요' : '참여 신청하기'}
         </button>
       )}
 

@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import api from '../api/axios'
-import { useToast } from '../context/ToastContext'
-import { useAuth } from '../context/AuthContext'
 
 function StarPicker({ rating, onRate }) {
   const [hovered, setHovered] = useState(0)
@@ -43,36 +40,16 @@ const RATING_LABELS = ['', '별로예요', '그저 그래요', '괜찮아요', '
 function ReviewPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { showToast } = useToast()
-  const { user, token } = useAuth()
   const [rating, setRating] = useState(0)
   const [text, setText] = useState('')
 
   useEffect(() => {
-    document.title = '같이타 - 후기 작성'
-    if (!token) navigate('/login', { replace: true })
-  }, [token])
+    document.title = '가치타 - 후기 작성'
+  }, [])
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault()
-    try {
-      await api.post('/api/reviews', {
-        rideId: Number(id),
-        rating,
-        text,
-        reviewer_id: user.id,
-      })
-      showToast('후기가 등록되었습니다!')
-      navigate(`/rides/${id}`)
-    } catch (err) {
-      if (err.response?.status === 400) {
-        alert('완료된 동승에만 후기를 남길 수 있어요.')
-      } else if (err.response?.status === 409) {
-        alert('이미 후기를 작성했어요.')
-      } else {
-        alert('후기 등록 중 오류가 발생했어요.')
-      }
-    }
+    console.log({ rideId: Number(id), rating, text })
   }
 
   return (

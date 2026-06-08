@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../api/axios'
-import { useAuth } from '../context/AuthContext'
 
 const MOCK_USER = {
   nickname: '김민석',
@@ -163,69 +161,11 @@ function RideRowCard({ ride }) {
 
 function ProfilePage() {
   const navigate = useNavigate()
-  const { token } = useAuth()
-  const [userData, setUserData] = useState(null)
-
-  const [applicants, setApplicants] = useState({})
+  const { nickname, student_id, manner_score, ride_count } = MOCK_USER
 
   useEffect(() => {
-    document.title = '같이타 - 프로필'
-    if (!token) {
-      navigate('/login', { replace: true })
-      return
-    }
-    api.get('/api/users/me')
-      .then(res => {
-        setUserData(res.data)
-        res.data.myRides?.forEach(ride => {
-          if (ride.status === 'open') {
-            api.get('/api/applications', { params: { ride_id: ride.id } })
-              .then(r => setApplicants(prev => ({ ...prev, [ride.id]: r.data })))
-          }
-        })
-      })
-      .catch(() => {
-        setUserData({
-          ...MOCK_USER,
-          myRides: MOCK_MY_RIDES,
-          appliedRides: MOCK_APPLIED_RIDES,
-          reviews: MOCK_REVIEWS,
-        })
-      })
-  }, [token])
-
-  // 수락 처리
-  async function handleAccept(appId, rideId) {
-    try {
-      await api.patch(`/api/applications/${appId}`, { status: 'accepted' })
-      // 해당 라이드 신청자 목록 새로고침
-      const res = await api.get('/api/applications', { params: { ride_id: rideId } })
-      setApplicants(prev => ({ ...prev, [rideId]: res.data }))
-      const userRes = await api.get('/api/users/me')
-      setUserData(prev => ({ ...prev, myRides: userRes.data.myRides }))
-      alert('수락 완료! 잔여 좌석이 1 줄었어요.')
-    } catch (err) {
-      alert(err.response?.data?.error || '오류가 발생했어요.')
-    }
-  }
-
-  // 거절 처리
-  async function handleReject(appId, rideId) {
-    try {
-      await api.patch(`/api/applications/${appId}`, { status: 'rejected' })
-      const res = await api.get('/api/applications', { params: { ride_id: rideId } })
-      setApplicants(prev => ({ ...prev, [rideId]: res.data }))
-    } catch (err) {
-      alert('오류가 발생했어요.')
-    }
-  }
-
-  if (!userData) return <div className="container py-5 text-center text-secondary">로딩 중...</div>
-
-  const { nickname, student_id, manner_score, ride_count,
-          myRides = MOCK_MY_RIDES,
-          appliedRides = MOCK_APPLIED_RIDES,
-          reviews = MOCK_REVIEWS } = userData
+    document.title = '가치타 - 프로필'
+  }, [])
 
   const barPercent = Math.min(100, (manner_score / 50) * 100)
   const barColor = mannerBarColor(manner_score)
@@ -318,78 +258,11 @@ function ProfilePage() {
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
           <h3 className="fs-6 fw-bold mb-3">내가 등록한 동승</h3>
-          {myRides.length === 0 ? (
+          {MOCK_MY_RIDES.length === 0 ? (
             <p className="text-secondary small mb-0 text-center py-2">등록한 동승이 없습니다.</p>
           ) : (
-            myRides.map((ride) => (
-              <div key={ride.id}>
-                <RideRowCard ride={ride} />
-                {/* 신청자 목록 — 모집 중인 라이드만 표시 */}
-                {ride.status === 'open' && applicants[ride.id]?.length > 0 && (
-                  <div style={{
-                    margin: '4px 0 12px',
-                    padding: '10px 12px',
-                    background: 'var(--color-primary-bg)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                  }}>
-                    <p className="small fw-semibold mb-2" style={{ color: 'var(--color-primary-dark)' }}>
-                      📋 신청자 {applicants[ride.id].length}명
-                    </p>
-                    {applicants[ride.id].map(app => (
-                      <div key={app.id} className="d-flex align-items-center justify-content-between py-1">
-                        <div>
-                          <span className="small fw-semibold">{app.nickname}</span>
-                          <span className="small text-secondary ms-2">⭐ {app.manner_score?.toFixed(1)}°</span>
-                        </div>
-                        <div className="d-flex gap-1">
-                          {app.status === 'pending' ? (
-                            <>
-                              <button
-                                onClick={() => handleAccept(app.id, ride.id)}
-                                style={{
-                                  padding: '3px 12px',
-                                  fontSize: '0.75rem',
-                                  fontWeight: 700,
-                                  border: 'none',
-                                  borderRadius: '20px',
-                                  background: 'var(--color-primary)',
-                                  color: '#fff',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                수락
-                              </button>
-                              <button
-                                onClick={() => handleReject(app.id, ride.id)}
-                                style={{
-                                  padding: '3px 12px',
-                                  fontSize: '0.75rem',
-                                  fontWeight: 700,
-                                  border: '1px solid #dee2e6',
-                                  borderRadius: '20px',
-                                  background: '#fff',
-                                  color: '#6c757d',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                거절
-                              </button>
-                            </>
-                          ) : (
-                            <span className={`badge ${app.status === 'accepted' ? 'bg-success' : 'bg-secondary'}`}>
-                              {app.status === 'accepted' ? '수락됨' : '거절됨'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {ride.status === 'open' && applicants[ride.id]?.length === 0 && (
-                  <p className="small text-secondary ms-1 mb-2">아직 신청자가 없어요.</p>
-                )}
-              </div>
+            MOCK_MY_RIDES.map((ride) => (
+              <RideRowCard key={ride.id} ride={ride} />
             ))
           )}
         </div>
@@ -399,20 +272,11 @@ function ProfilePage() {
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
           <h3 className="fs-6 fw-bold mb-3">내가 신청한 동승</h3>
-          {appliedRides.length === 0 ? (
+          {MOCK_APPLIED_RIDES.length === 0 ? (
             <p className="text-secondary small mb-0 text-center py-2">신청한 동승이 없습니다.</p>
           ) : (
-            appliedRides.map((ride) => (
-              <div key={ride.id}>
-                <RideRowCard ride={ride} />
-                <div className="ms-1 mb-2" style={{ marginTop: '-6px' }}>
-                  {ride.apply_status === 'accepted' ? (
-                    <span className="badge bg-success-subtle text-success rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>수락됨</span>
-                  ) : (
-                    <span className="badge bg-warning-subtle text-warning rounded-pill px-2 py-1" style={{ fontSize: '0.7rem' }}>승인 대기 중</span>
-                  )}
-                </div>
-              </div>
+            MOCK_APPLIED_RIDES.map((ride) => (
+              <RideRowCard key={ride.id} ride={ride} />
             ))
           )}
         </div>
@@ -423,7 +287,7 @@ function ProfilePage() {
         <div className="card-body p-4">
           <h3 className="fs-6 fw-bold mb-3">받은 후기</h3>
           <div className="d-flex flex-column gap-3">
-            {reviews.map((review) => (
+            {MOCK_REVIEWS.map((review) => (
               <div key={review.id} className="p-3 rounded-3" style={{ background: 'var(--color-primary-bg)' }}>
                 <div className="d-flex align-items-center justify-content-between mb-1">
                   <span className="fw-semibold small">{review.author}</span>
