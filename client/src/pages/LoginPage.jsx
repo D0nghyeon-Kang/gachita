@@ -244,7 +244,7 @@ function LoginPage() {
             테스트 계정
           </p>
           <p className="small mb-0 text-secondary">
-            학번: <strong>2021001</strong> &nbsp;|&nbsp; 비밀번호: <strong>password123</strong>
+            학번: <strong>20210001</strong> &nbsp;|&nbsp; 비밀번호: <strong>password123</strong>
           </p>
         </div>
 
