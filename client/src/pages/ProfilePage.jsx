@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 
 const MOCK_USER = {
   nickname: '김민석',
@@ -162,16 +163,20 @@ function RideRowCard({ ride }) {
 
 function ProfilePage() {
   const navigate = useNavigate()
+  const { token } = useAuth()
   const [userData, setUserData] = useState(null)
 
-  const [applicants, setApplicants] = useState({}) // { ride_id: [신청자 목록] }
+  const [applicants, setApplicants] = useState({})
 
   useEffect(() => {
     document.title = '같이타 - 프로필'
-    api.get('/api/users/me', { params: { user_id: 1 } })
+    if (!token) {
+      navigate('/login', { replace: true })
+      return
+    }
+    api.get('/api/users/me')
       .then(res => {
         setUserData(res.data)
-        // 내가 등록한 라이드의 신청자 목록 불러오기
         res.data.myRides?.forEach(ride => {
           if (ride.status === 'open') {
             api.get('/api/applications', { params: { ride_id: ride.id } })
@@ -187,7 +192,7 @@ function ProfilePage() {
           reviews: MOCK_REVIEWS,
         })
       })
-  }, [])
+  }, [token])
 
   // 수락 처리
   async function handleAccept(appId, rideId) {
@@ -196,8 +201,7 @@ function ProfilePage() {
       // 해당 라이드 신청자 목록 새로고침
       const res = await api.get('/api/applications', { params: { ride_id: rideId } })
       setApplicants(prev => ({ ...prev, [rideId]: res.data }))
-      // 유저 데이터도 새로고침 (좌석 수 반영)
-      const userRes = await api.get('/api/users/me', { params: { user_id: 1 } })
+      const userRes = await api.get('/api/users/me')
       setUserData(prev => ({ ...prev, myRides: userRes.data.myRides }))
       alert('수락 완료! 잔여 좌석이 1 줄었어요.')
     } catch (err) {

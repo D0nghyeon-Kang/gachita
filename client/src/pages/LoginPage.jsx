@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 
 function EyeIcon() {
   return (
@@ -21,8 +22,9 @@ function EyeSlashIcon() {
   )
 }
 
-function LoginPage({ onLogin }) {
+function LoginPage() {
   const navigate = useNavigate()
+  const { login, token } = useAuth()
   const [form, setForm] = useState({ student_id: '', password: '' })
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
@@ -31,7 +33,7 @@ function LoginPage({ onLogin }) {
 
   useEffect(() => {
     document.title = '같이타 - 로그인'
-    if (localStorage.getItem('token')) navigate('/')
+    if (token) navigate('/')
   }, [])
 
   function handleChange(e) {
@@ -64,10 +66,7 @@ function LoginPage({ onLogin }) {
     setLoading(true)
     try {
       const res = await api.post('/api/auth/login', form)
-      localStorage.setItem('token', res.data.token)
-      localStorage.setItem('isLoggedIn', 'true')
-      localStorage.setItem('user', JSON.stringify(res.data.user))
-      onLogin && onLogin(res.data.user)
+      login(res.data.user, res.data.token)
       navigate('/')
     } catch (err) {
       setServerError(err.response?.data?.error || '로그인에 실패했어요. 다시 시도해주세요.')

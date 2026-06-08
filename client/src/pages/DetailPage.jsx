@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
 
 const MOCK_RIDES = [
   {
@@ -82,6 +83,7 @@ function DetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const { user, isLoggedIn } = useAuth()
   const [applied, setApplied] = useState(false)
   const [ride, setRide] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -153,10 +155,14 @@ function DetailPage() {
     seatsLeft === 0 ? 'bg-danger' : seatsLeft <= 1 ? 'bg-warning text-dark' : 'bg-success'
 
   async function handleApply() {
+    if (!isLoggedIn) {
+      navigate('/login')
+      return
+    }
     try {
       await api.post('/api/applications', {
         ride_id: Number(id),
-        applicant_id: 1, // 로그인 연동 후 실제 유저 ID로 교체
+        applicant_id: user.id,
       })
       setApplied(true)
       showToast('참여 신청이 완료되었습니다!')
