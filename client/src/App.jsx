@@ -10,9 +10,9 @@ import ReviewPage from './pages/ReviewPage'
 import ProfilePage from './pages/ProfilePage'
 import NotFoundPage from './pages/NotFoundPage'
 import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
+import SignupPage from './pages/SignupPage'
 
-const NO_NAVBAR_PATHS = ['/login', '/register']
+const NO_NAVBAR_PATHS = ['/login', '/register', '/signup']
 
 function Layout() {
   const { pathname } = useLocation()
@@ -28,7 +28,8 @@ function Layout() {
           <Route path="/write" element={<WritePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/register" element={<SignupPage />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
