@@ -1,16 +1,28 @@
 // server/routes/users.js
-// 수정 사항:
-//   리뷰 조회 쿼리를 reviewee_id 기준으로 변경 (기존: r.host_id 기준)
-//   → 내가 받은 리뷰를 정확하게 조회
-const express   = require('express');
-const router    = express.Router();
-const { getDb } = require('../db/db');
+const express    = require('express');
+const router     = express.Router();
+const jwt        = require('jsonwebtoken');
+const { getDb }  = require('../db/db');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'gachita-dev-secret';
+
+function extractUserId(req) {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return null;
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    return decoded.id;
+  } catch {
+    return null;
+  }
+}
 
 // GET /api/users/me
 router.get('/me', (req, res) => {
   try {
     const db      = getDb();
-    const user_id = req.query.user_id || 1;
+    const user_id = extractUserId(req);
+    if (!user_id) return res.status(401).json({ error: '로그인이 필요합니다.' });
 
     const user = db.prepare(`
       SELECT id, nickname, student_id, manner_score, ride_count, gender, created_at
@@ -74,9 +86,10 @@ router.get('/:id', (req, res) => {
 // PATCH /api/users/me
 router.patch('/me', (req, res) => {
   try {
-    const db            = getDb();
-    const { nickname, gender, user_id } = req.body;
-    const id            = user_id || 1;
+    const db  = getDb();
+    const id  = extractUserId(req);
+    if (!id) return res.status(401).json({ error: '로그인이 필요합니다.' });
+    const { nickname, gender } = req.body;
 
     if (nickname) db.prepare('UPDATE users SET nickname = ? WHERE id = ?').run(nickname, id);
     if (gender)   db.prepare('UPDATE users SET gender   = ? WHERE id = ?').run(gender,   id);

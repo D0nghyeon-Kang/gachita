@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import Toast from './components/Toast'
 import Navbar from './components/Navbar'
@@ -38,10 +39,12 @@ function Layout() {
 function App() {
   return (
     <BrowserRouter>
-      <ToastProvider>
-        <Toast />
-        <Layout />
-      </ToastProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <Toast />
+          <Layout />
+        </ToastProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

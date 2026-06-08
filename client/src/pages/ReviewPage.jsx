@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
 
 function StarPicker({ rating, onRate }) {
   const [hovered, setHovered] = useState(0)
@@ -43,12 +44,14 @@ function ReviewPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const { user, token } = useAuth()
   const [rating, setRating] = useState(0)
   const [text, setText] = useState('')
 
   useEffect(() => {
     document.title = '같이타 - 후기 작성'
-  }, [])
+    if (!token) navigate('/login', { replace: true })
+  }, [token])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -57,7 +60,7 @@ function ReviewPage() {
         rideId: Number(id),
         rating,
         text,
-        reviewer_id: 1, // 로그인 연동 후 실제 유저 ID로 교체
+        reviewer_id: user.id,
       })
       showToast('후기가 등록되었습니다!')
       navigate(`/rides/${id}`)

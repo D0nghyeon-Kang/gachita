@@ -1,14 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
-function Navbar({ user, onLogout }) {
+function Navbar() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const { isLoggedIn, logout } = useAuth()
   const isActive = (path) => pathname === path
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
 
   function handleLogout() {
-    localStorage.removeItem('isLoggedIn')
-    onLogout && onLogout()
+    logout()
     navigate('/login')
   }
 

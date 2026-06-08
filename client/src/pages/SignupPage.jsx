@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 
 const INITIAL_FORM = {
   student_id: '',
@@ -10,15 +11,16 @@ const INITIAL_FORM = {
   gender: 'other',
 }
 
-function SignupPage({ onLogin }) {
+function SignupPage() {
   const navigate = useNavigate()
+  const { login, token } = useAuth()
   const [form, setForm] = useState(INITIAL_FORM)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     document.title = '같이타 - 회원가입'
-    if (localStorage.getItem('token')) navigate('/')
+    if (token) navigate('/')
   }, [])
 
   function handleChange(e) {
@@ -51,9 +53,7 @@ function SignupPage({ onLogin }) {
         nickname: form.nickname,
         gender: form.gender,
       })
-      localStorage.setItem('token', res.data.token)
-      localStorage.setItem('user', JSON.stringify(res.data.user))
-      onLogin && onLogin(res.data.user)
+      login(res.data.user, res.data.token)
       alert(`환영해요, ${res.data.user.nickname}님! 🎉`)
       navigate('/')
     } catch (err) {
