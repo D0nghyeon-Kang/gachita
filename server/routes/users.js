@@ -37,12 +37,13 @@ router.get('/me', (req, res) => {
       ORDER BY created_at DESC
     `).all(user_id);
 
-    // 내가 신청하여 수락된 라이드
+    // 내가 신청한 라이드 (대기 중 + 수락됨)
     const appliedRides = db.prepare(`
-      SELECT r.id, r.origin, r.destination, r.depart_at, r.status
+      SELECT r.id, r.origin, r.destination, r.depart_at, r.status,
+             a.status as apply_status
       FROM applications a
       JOIN rides r ON a.ride_id = r.id
-      WHERE a.applicant_id = ? AND a.status = 'accepted'
+      WHERE a.applicant_id = ? AND a.status IN ('pending', 'accepted')
       ORDER BY a.created_at DESC
     `).all(user_id);
 

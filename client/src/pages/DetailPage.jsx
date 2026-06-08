@@ -162,7 +162,6 @@ function DetailPage() {
     try {
       await api.post('/api/applications', {
         ride_id: Number(id),
-        applicant_id: user.id,
       })
       setApplied(true)
       showToast('참여 신청이 완료되었습니다!')
