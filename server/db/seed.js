@@ -28,12 +28,12 @@ const insertUser = db.prepare(`
 `);
 
 const users = [
-  { student_id: '2021001', nickname: '이준호', gender: 'male',   manner_score: 48.0, ride_count: 34 },
-  { student_id: '2021002', nickname: '박서연', gender: 'female', manner_score: 45.0, ride_count: 21 },
-  { student_id: '2021003', nickname: '최민준', gender: 'male',   manner_score: 42.0, ride_count: 12 },
-  { student_id: '2021004', nickname: '김지수', gender: 'female', manner_score: 49.0, ride_count: 56 },
-  { student_id: '2021005', nickname: '윤태양', gender: 'male',   manner_score: 46.0, ride_count: 28 },
-  { student_id: '2021006', nickname: '임하은', gender: 'female', manner_score: 47.0, ride_count: 43 },
+  { student_id: '20210001', nickname: '이준호', gender: 'male',   manner_score: 48.0, ride_count: 34 },
+  { student_id: '20210002', nickname: '박서연', gender: 'female', manner_score: 45.0, ride_count: 21 },
+  { student_id: '20210003', nickname: '최민준', gender: 'male',   manner_score: 42.0, ride_count: 12 },
+  { student_id: '20210004', nickname: '김지수', gender: 'female', manner_score: 49.0, ride_count: 56 },
+  { student_id: '20210005', nickname: '윤태양', gender: 'male',   manner_score: 46.0, ride_count: 28 },
+  { student_id: '20210006', nickname: '임하은', gender: 'female', manner_score: 47.0, ride_count: 43 },
 ].map(u => ({
   ...u,
   password_hash: bcrypt.hashSync('password123', SALT_ROUNDS),
