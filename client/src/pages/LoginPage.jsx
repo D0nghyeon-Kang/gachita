@@ -32,7 +32,7 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
-    document.title = '같이타 - 로그인'
+    document.title = '가치타 - 로그인'
     if (token) navigate('/')
   }, [])
 
