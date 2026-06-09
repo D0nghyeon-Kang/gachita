@@ -117,7 +117,7 @@ function LoginPage() {
               marginBottom: '6px',
             }}
           >
-            같이<span style={{ color: 'var(--color-primary)' }}>타</span>
+            가치<span style={{ color: 'var(--color-primary)' }}>타</span>
           </h1>
           <p style={{ fontSize: '0.9rem', color: 'var(--color-text-sub)' }}>
             단국대 교내 카풀 · 택시 동승 매칭
