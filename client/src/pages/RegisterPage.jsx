@@ -34,7 +34,7 @@ function RegisterPage() {
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
 
   useEffect(() => {
-    document.title = '같이타 - 회원가입'
+    document.title = '가치타 - 회원가입'
   }, [])
 
   function handleChange(e) {
