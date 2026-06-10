@@ -1,5 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 
 const MOCK_USER = {
   nickname: '김민석',
@@ -161,11 +163,36 @@ function RideRowCard({ ride }) {
 
 function ProfilePage() {
   const navigate = useNavigate()
-  const { nickname, student_id, manner_score, ride_count } = MOCK_USER
+  const { user: authUser } = useAuth()
+  const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     document.title = '가치타 - 프로필'
-  }, [])
+    if (!authUser) {
+      navigate('/login')
+      return
+    }
+    api.get('/api/users/me', { params: { user_id: authUser.id } })
+      .then(res => {
+        setUserData(res.data)
+        setLoading(false)
+      })
+      .catch(() => {
+        // 서버 오류 시 authUser 정보로 대체
+        setUserData({ ...MOCK_USER, ...authUser })
+        setLoading(false)
+      })
+  }, [authUser])
+
+  if (loading) {
+    return <div className="container py-5 text-center text-secondary">로딩 중...</div>
+  }
+
+  const { nickname, student_id, manner_score, ride_count,
+    myRides = MOCK_MY_RIDES,
+    appliedRides = MOCK_APPLIED_RIDES,
+    reviews = MOCK_REVIEWS } = userData || MOCK_USER
 
   const barPercent = Math.min(100, (manner_score / 50) * 100)
   const barColor = mannerBarColor(manner_score)
@@ -258,10 +285,10 @@ function ProfilePage() {
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
           <h3 className="fs-6 fw-bold mb-3">내가 등록한 동승</h3>
-          {MOCK_MY_RIDES.length === 0 ? (
+          {myRides.length === 0 ? (
             <p className="text-secondary small mb-0 text-center py-2">등록한 동승이 없습니다.</p>
           ) : (
-            MOCK_MY_RIDES.map((ride) => (
+            myRides.map((ride) => (
               <RideRowCard key={ride.id} ride={ride} />
             ))
           )}
@@ -272,10 +299,10 @@ function ProfilePage() {
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
           <h3 className="fs-6 fw-bold mb-3">내가 신청한 동승</h3>
-          {MOCK_APPLIED_RIDES.length === 0 ? (
+          {appliedRides.length === 0 ? (
             <p className="text-secondary small mb-0 text-center py-2">신청한 동승이 없습니다.</p>
           ) : (
-            MOCK_APPLIED_RIDES.map((ride) => (
+            appliedRides.map((ride) => (
               <RideRowCard key={ride.id} ride={ride} />
             ))
           )}
@@ -287,7 +314,7 @@ function ProfilePage() {
         <div className="card-body p-4">
           <h3 className="fs-6 fw-bold mb-3">받은 후기</h3>
           <div className="d-flex flex-column gap-3">
-            {MOCK_REVIEWS.map((review) => (
+            {reviews.map((review) => (
               <div key={review.id} className="p-3 rounded-3" style={{ background: 'var(--color-primary-bg)' }}>
                 <div className="d-flex align-items-center justify-content-between mb-1">
                   <span className="fw-semibold small">{review.author}</span>
