@@ -114,7 +114,7 @@ function SignupPage() {
                 name="student_id"
                 type="text"
                 className="form-control"
-                placeholder="예: 2021001"
+                placeholder="예: 20210001"
                 value={form.student_id}
                 onChange={handleChange}
                 required
