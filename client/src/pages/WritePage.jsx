@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 
 const INITIAL_FORM = {
   from: '',
@@ -27,14 +29,26 @@ function WritePage() {
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    console.log('게시글 등록 입력값:', {
-      ...form,
-      seats: Number(form.seats),
-      estimatedCost: Number(form.estimatedCost),
-      departureTime: `${form.departureDate} ${form.departureTime}`,
-    })
+    try {
+      await api.post('/api/rides', {
+        from: form.from,
+        to: form.to,
+        departureDate: form.departureDate,
+        departureTime: form.departureTime,
+        seats: Number(form.seats),
+        estimatedCost: Number(form.estimatedCost),
+        rideType: form.rideType,
+        genderRestriction: form.genderRestriction,
+        hasLuggage: form.hasLuggage,
+        memo: form.memo,
+      })
+      alert('동승 모집 글이 등록됐어요!')
+      navigate('/')
+    } catch (err) {
+      alert(err.response?.data?.error || '등록 중 오류가 발생했어요. 다시 시도해주세요.')
+    }
   }
 
   return (
