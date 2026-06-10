@@ -115,4 +115,4 @@ console.log('  rides:', db.prepare('SELECT COUNT(*) as cnt FROM rides').get().cn
 console.log('  users:', db.prepare('SELECT COUNT(*) as cnt FROM users').get().cnt + '개');
 console.log('  reviews:', db.prepare('SELECT COUNT(*) as cnt FROM reviews').get().cnt + '개');
 
-db.close();
+// ⚠️ db.close() 제거 - 서버 실행 중 DB 연결이 끊기는 문제 방지
