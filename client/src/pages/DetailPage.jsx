@@ -174,11 +174,10 @@ function DetailPage() {
               <span className="fw-bold" style={{ color: 'var(--color-primary)' }}>{cost_total.toLocaleString()}원</span>
             </li>
             <li className="d-flex justify-content-between align-items-center">
-              <span className="text-secondary d-flex align-items-center gap-2">
-                🌡️
+              <span className="text-secondary">
                 매너 온도
               </span>
-              <StarRating rating={rating} size={15} />
+              <span className="fw-semibold">🌡️ {(Number(rating) || 0).toFixed(1)}°</span>
             </li>
           </ul>
         </div>
