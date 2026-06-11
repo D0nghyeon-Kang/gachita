@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import RideCard from '../components/RideCard'
+import api from '../api/axios'
 
 const MOCK_RIDES = [
   {
@@ -124,28 +125,43 @@ const STEPS = [
 ]
 
 function MainPage() {
+  const [rides, setRides] = useState([])
   const [activeFilter, setActiveFilter] = useState('전체')
   const [sort, setSort] = useState('최신순')
   const [searchOrigin, setSearchOrigin] = useState('')
+  const [searchDest, setSearchDest] = useState('')
+  const [appliedOrigin, setAppliedOrigin] = useState('')
+  const [appliedDest, setAppliedDest] = useState('')
 
   useEffect(() => {
     document.title = '가치타 - 메인'
   }, [])
-  const [searchDest, setSearchDest] = useState('')
-  const [appliedOrigin, setAppliedOrigin] = useState('')
-  const [appliedDest, setAppliedDest] = useState('')
+
+  useEffect(() => {
+    fetchRides()
+  }, [activeFilter, sort, appliedOrigin, appliedDest])
+
+  async function fetchRides() {
+    try {
+      const params = {}
+      if (activeFilter !== '전체') params.type = activeFilter
+      if (sort !== '최신순') params.sort = sort
+      if (appliedOrigin) params.origin = appliedOrigin
+      if (appliedDest) params.destination = appliedDest
+      const res = await api.get('/api/rides', { params })
+      setRides(res.data)
+    } catch (err) {
+      console.error('라이드 목록 불러오기 실패:', err)
+      setRides(MOCK_RIDES)
+    }
+  }
 
   function handleSearch() {
     setAppliedOrigin(searchOrigin.trim())
     setAppliedDest(searchDest.trim())
   }
 
-  const filtered = MOCK_RIDES.filter((r) => {
-    if (activeFilter !== '전체' && r.type !== activeFilter) return false
-    if (appliedOrigin && !r.origin.includes(appliedOrigin)) return false
-    if (appliedDest && !r.destination.includes(appliedDest)) return false
-    return true
-  })
+  const filtered = rides
 
   return (
     <main style={{ background: 'var(--color-bg)' }}>

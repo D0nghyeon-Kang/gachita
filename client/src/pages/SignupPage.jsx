@@ -19,7 +19,7 @@ function SignupPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    document.title = '같이타 - 회원가입'
+    document.title = '가치타 - 회원가입'
     if (token) navigate('/')
   }, [])
 
@@ -84,7 +84,7 @@ function SignupPage() {
           </svg>
         </div>
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.04em' }}>
-          같이<span style={{ color: 'var(--color-primary)' }}>타</span>
+          가치<span style={{ color: 'var(--color-primary)' }}>타</span>
         </h1>
         <p style={{ fontSize: '0.9rem', color: 'var(--color-text-sub)', marginTop: 4 }}>
           단국대학교 카풀 동승 매칭 서비스
@@ -114,7 +114,7 @@ function SignupPage() {
                 name="student_id"
                 type="text"
                 className="form-control"
-                placeholder="예: 2021001"
+                placeholder="예: 20210001"
                 value={form.student_id}
                 onChange={handleChange}
                 required
