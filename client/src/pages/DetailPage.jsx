@@ -178,7 +178,7 @@ function DetailPage() {
                 🌡️
                 매너 온도
               </span>
-              <StarRating rating={rating} size={15} />
+              <span className="fw-semibold">🌡️ {(Number(rating) || 0).toFixed(1)}°</span>
             </li>
           </ul>
         </div>
