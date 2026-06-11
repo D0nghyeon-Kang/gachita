@@ -3,27 +3,6 @@ import { useState, useEffect } from 'react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 
-function StarRating({ rating, size = 16 }) {
-  const safeRating = Number(rating) || 0
-  return (
-    <span aria-label={`별점 ${safeRating}점`}>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <svg
-          key={star}
-          xmlns="http://www.w3.org/2000/svg"
-          width={size}
-          height={size}
-          fill={star <= Math.round(safeRating) ? '#ffc107' : '#dee2e6'}
-          viewBox="0 0 16 16"
-          aria-hidden="true"
-        >
-          <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
-        </svg>
-      ))}
-      <span className="ms-1 fw-semibold">{safeRating.toFixed(1)}</span>
-    </span>
-  )
-}
 
 function DetailPage() {
   const { id } = useParams()
@@ -198,7 +177,7 @@ function DetailPage() {
               <div className="small text-secondary">{driver?.carModel}</div>
             </div>
             <div className="text-end">
-              <div className="small"><StarRating rating={driver?.rating} size={13} /></div>
+              <div className="small fw-semibold">🌡️ {(Number(driver?.rating) || 0).toFixed(1)}°</div>
               <div className="small text-secondary mt-1">{driver?.trips}회 운행</div>
             </div>
           </div>
