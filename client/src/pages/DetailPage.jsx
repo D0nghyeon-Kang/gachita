@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import api from '../api/axios'
 
 const MOCK_RIDES = [
   {
@@ -81,33 +80,14 @@ function DetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [applied, setApplied] = useState(false)
-  const [ride, setRide] = useState(null)
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    api.get(`/api/rides/${id}`)
-      .then(res => {
-        setRide(res.data)
-        setLoading(false)
-      })
-      .catch(() => {
-        setLoading(false)
-      })
-  }, [id])
+  const ride = MOCK_RIDES.find((r) => r.id === Number(id))
 
   useEffect(() => {
     document.title = ride
       ? `가치타 - ${ride.origin} → ${ride.destination}`
       : '가치타 - 상세'
   }, [ride])
-
-  if (loading) {
-    return (
-      <div className="container py-5 text-center">
-        <p className="text-secondary">불러오는 중...</p>
-      </div>
-    )
-  }
 
   if (!ride) {
     return (
@@ -141,23 +121,8 @@ function DetailPage() {
   const seatsBadge =
     seatsLeft === 0 ? 'bg-danger' : seatsLeft <= 1 ? 'bg-warning text-dark' : 'bg-success'
 
-  async function handleApply() {
-    try {
-      await api.post('/api/applications', {
-        ride_id: Number(id),
-        applicant_id: 1,
-      })
-      setApplied(true)
-      // 좌석 수 즉시 반영
-      const res = await api.get(`/api/rides/${id}`)
-      setRide(res.data)
-    } catch (err) {
-      if (err.response?.status === 409) {
-        alert('이미 신청한 동승이에요.')
-      } else {
-        alert('신청 중 오류가 발생했어요.')
-      }
-    }
+  function handleApply() {
+    setApplied(true)
   }
 
   return (
