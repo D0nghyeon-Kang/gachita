@@ -165,29 +165,52 @@ function ProfilePage() {
   const navigate = useNavigate()
   const { user: authUser } = useAuth()
   const [userData, setUserData] = useState(null)
+  const [applicants, setApplicants] = useState({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     document.title = '가치타 - 프로필'
-    if (!authUser) {
-      navigate('/login')
-      return
-    }
+    if (!authUser) { navigate('/login'); return }
     api.get('/api/users/me', { params: { user_id: authUser.id } })
       .then(res => {
         setUserData(res.data)
         setLoading(false)
+        // 내가 등록한 라이드의 신청자 목록 불러오기
+        res.data.myRides?.forEach(ride => {
+          if (ride.status === 'open') {
+            api.get('/api/applications', { params: { ride_id: ride.id } })
+              .then(r => setApplicants(prev => ({ ...prev, [ride.id]: r.data })))
+          }
+        })
       })
       .catch(() => {
-        // 서버 오류 시 authUser 정보로 대체
-        setUserData({ ...MOCK_USER, ...authUser })
+        setUserData({ ...MOCK_USER, ...authUser, myRides: MOCK_MY_RIDES, appliedRides: MOCK_APPLIED_RIDES, reviews: MOCK_REVIEWS })
         setLoading(false)
       })
   }, [authUser])
 
-  if (loading) {
-    return <div className="container py-5 text-center text-secondary">로딩 중...</div>
+  async function handleAccept(appId, rideId) {
+    try {
+      await api.patch(`/api/applications/${appId}`, { status: 'accepted' })
+      const res = await api.get('/api/applications', { params: { ride_id: rideId } })
+      setApplicants(prev => ({ ...prev, [rideId]: res.data }))
+      alert('수락 완료! 잔여 좌석이 줄었어요.')
+    } catch (err) {
+      alert(err.response?.data?.error || '오류가 발생했어요.')
+    }
   }
+
+  async function handleReject(appId, rideId) {
+    try {
+      await api.patch(`/api/applications/${appId}`, { status: 'rejected' })
+      const res = await api.get('/api/applications', { params: { ride_id: rideId } })
+      setApplicants(prev => ({ ...prev, [rideId]: res.data }))
+    } catch (err) {
+      alert('오류가 발생했어요.')
+    }
+  }
+
+  if (loading) return <div className="container py-5 text-center text-secondary">로딩 중...</div>
 
   const { nickname, student_id, manner_score, ride_count,
     myRides = MOCK_MY_RIDES,
@@ -288,7 +311,7 @@ function ProfilePage() {
           {myRides.length === 0 ? (
             <p className="text-secondary small mb-0 text-center py-2">등록한 동승이 없습니다.</p>
           ) : (
-            myRides.map((ride) => (
+            MOCK_MY_RIDES.map((ride) => (
               <RideRowCard key={ride.id} ride={ride} />
             ))
           )}
